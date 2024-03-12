@@ -54,11 +54,19 @@ typedef enum InstructionType
     IT_ALR, // Illegal
     IT_ANC, // Illegal
     IT_AND,
+    IT_ANE,
     IT_ARR, // Illegal
     IT_ASL,
     IT_AXS, // Illegal
+    IT_BCC,
+    IT_BCS,
+    IT_BEQ,
     IT_BIT,
+    IT_BMI,
+    IT_BNE,
     IT_BRK,
+    IT_BVC,
+    IT_BVS,
     IT_CLC,
     IT_CLD,
     IT_CLI,
@@ -76,6 +84,7 @@ typedef enum InstructionType
     IT_INX,
     IT_INY,
     IT_ISC, // Illegal
+    IT_JAM, // Illegal
     IT_JMP,
     IT_JSR,
     IT_LAX, // Illegal
@@ -83,29 +92,42 @@ typedef enum InstructionType
     IT_LDX,
     IT_LDY,
     IT_LSR,
+    IT_LXA, // Illegal
     IT_NOP,
     IT_ORA,
-    IT_EOL,
+    IT_PHA,
+    IT_PHP,
+    IT_PLA,
+    IT_PLP,
     IT_RLA, // Illegal
-    IT_RRA, // Illegal
+    IT_ROL,
     IT_ROR,
+    IT_RRA, // Illegal
     IT_RTI,
     IT_RTS,
     IT_SAX, // Illegal
     IT_SBC,
+    IT_SBX, // Illegal
     IT_SEC,
     IT_SED,
     IT_SEI,
+    IT_SHA, // Illegal
+    IT_SHX, // Illegal
+    IT_SHY, // Illegal
     IT_SKB, // Illegal
     IT_SLO, // Illegal
     IT_SRE, // Illegal
     IT_STA,
     IT_STX,
     IT_STY,
+    IT_TAS, // Illegal
     IT_TAX,
     IT_TAY,
+    IT_TSX,
     IT_TXA,
+    IT_TXS,
     IT_TYA,
+    IT_USBC, // Illegal
 } InstructionType;
 
 typedef uint8_t(instruction_load_t)(Cpu *, uint16_t);
@@ -174,7 +196,12 @@ instruction_func_t cpu_brk;
 instruction_func_t cpu_inx;
 instruction_func_t cpu_lda;
 instruction_func_t cpu_sta;
+instruction_func_t cpu_stx;
+instruction_func_t cpu_sty;
 instruction_func_t cpu_tax;
+instruction_func_t cpu_tay;
+instruction_func_t cpu_txa;
+instruction_func_t cpu_tya;
 
 bool u8sign(uint8_t value);
 
