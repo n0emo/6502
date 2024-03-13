@@ -35,10 +35,10 @@ instruction_func_t *const inst_funcs[] = {
     [IT_BRK] = cpu_brk,
     [IT_BVC] = NULL,
     [IT_BVS] = NULL,
-    [IT_CLC] = NULL,
-    [IT_CLD] = NULL,
-    [IT_CLI] = NULL,
-    [IT_CLV] = NULL,
+    [IT_CLC] = cpu_clc,
+    [IT_CLD] = cpu_cld,
+    [IT_CLI] = cpu_cli,
+    [IT_CLV] = cpu_clv,
     [IT_CMP] = NULL,
     [IT_CPX] = NULL,
     [IT_CPY] = NULL,
@@ -48,17 +48,17 @@ instruction_func_t *const inst_funcs[] = {
     [IT_DEY] = NULL,
     [IT_EOR] = NULL,
     [IT_IGN] = NULL, // Illegal
-    [IT_INC] = NULL,
+    [IT_INC] = cpu_inc,
     [IT_INX] = cpu_inx,
-    [IT_INY] = NULL,
+    [IT_INY] = cpu_iny,
     [IT_ISC] = NULL, // Illegal
     [IT_JAM] = NULL, // Illegal
     [IT_JMP] = NULL,
     [IT_JSR] = NULL,
     [IT_LAX] = NULL, // Illegal
     [IT_LDA] = cpu_lda,
-    [IT_LDX] = NULL,
-    [IT_LDY] = NULL,
+    [IT_LDX] = cpu_ldx,
+    [IT_LDY] = cpu_ldy,
     [IT_LSR] = NULL,
     [IT_LXA] = NULL, // Illegal
     [IT_NOP] = NULL,
@@ -556,9 +556,7 @@ uint8_t cpu_load_indirect_y(Cpu *cpu, uint16_t operand)
 
 uint8_t cpu_load_relative(Cpu *cpu, uint16_t operand)
 {
-    (void)cpu;
-    (void)operand;
-    return 0;
+    return cpu->PC + u16_lo(operand);
 }
 
 uint8_t cpu_load_zeropage(Cpu *cpu, uint16_t operand)
@@ -700,9 +698,45 @@ void cpu_asl(Cpu *cpu, CpuLoadStore ls, uint16_t data)
 
 void cpu_brk(Cpu *cpu, CpuLoadStore ls, uint16_t data)
 {
-    (void)cpu;
+    cpu->B = 0;
     (void)ls;
     (void)data;
+}
+
+void cpu_clc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->C = 0;
+}
+
+void cpu_cld(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->D = 0;
+}
+
+void cpu_cli(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->I = 0;
+}
+
+void cpu_clv(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->V = 0;
+}
+
+void cpu_inc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->A++;
+    cpu_set_zn(cpu, cpu->A);
 }
 
 void cpu_inx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
@@ -713,11 +747,37 @@ void cpu_inx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
     cpu_set_zn(cpu, cpu->X);
 }
 
+void cpu_iny(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)ls;
+    (void)data;
+    cpu->Y++;
+    cpu_set_zn(cpu, cpu->Y);
+}
+
 void cpu_lda(Cpu *cpu, CpuLoadStore ls, uint16_t data)
 {
-    uint8_t a = ls.load(cpu, data);
-    cpu->A = a;
-    cpu_set_zn(cpu, a);
+    cpu->A = ls.load(cpu, data);
+    cpu_set_zn(cpu, cpu->A);
+}
+
+void cpu_ldx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    cpu->X = ls.load(cpu, data);
+    cpu_set_zn(cpu, cpu->X);
+}
+
+void cpu_ldy(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    cpu->Y = ls.load(cpu, data);
+    cpu_set_zn(cpu, cpu->Y);
+}
+
+void cpu_nop(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+{
+    (void)cpu;
+    (void)ls;
+    (void)data;
 }
 
 void cpu_sta(Cpu *cpu, CpuLoadStore ls, uint16_t data)
