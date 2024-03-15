@@ -9,6 +9,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define UNUSED(...) (void)(__VA_ARGS__)
+#define UNUSED2(x, y) UNUSED(x), UNUSED(y)
+#define UNUSED3(x, y, z) UNUSED(x), UNUSED(y), UNUSED(z)
+
 typedef struct Cpu
 {
     uint16_t PC; // program counter
@@ -64,6 +68,7 @@ typedef enum InstructionType
     IT_BIT,
     IT_BMI,
     IT_BNE,
+    IT_BPL,
     IT_BRK,
     IT_BVC,
     IT_BVS,
@@ -130,17 +135,19 @@ typedef enum InstructionType
     IT_USBC, // Illegal
 } InstructionType;
 
-typedef uint8_t(instruction_load_t)(Cpu *, uint16_t);
-typedef void(instruction_store_t)(Cpu *, uint16_t, uint8_t);
+typedef uint8_t(instruction_load_t)(Cpu *cpu, uint16_t operand);
+typedef void(instruction_store_t)(Cpu *cpu, uint16_t operand, uint8_t value);
+typedef uint16_t(instruction_address_t)(Cpu *cpu, uint16_t operand);
 
 typedef struct
 {
     instruction_load_t *load;
     instruction_store_t *store;
+    instruction_address_t *address;
     size_t size;
-} CpuLoadStore;
+} Addressing;
 
-typedef void(instruction_func_t)(Cpu *, CpuLoadStore, uint16_t);
+typedef void(instruction_func_t)(Cpu *, Addressing, uint16_t);
 
 typedef struct Instruction
 {
@@ -156,10 +163,13 @@ void cpu_reset(Cpu *cpu);
 void cpu_execute(Cpu *cpu);
 void cpu_set_z(Cpu *cpu, uint8_t value);
 void cpu_set_n(Cpu *cpu, uint8_t value);
-uint16_t cpu_read16(Cpu *cpu, uint16_t address);
-uint8_t u16_lo(uint16_t u16);
-uint8_t u16_hi(uint16_t u16);
-uint16_t u16_from_lohi(uint8_t lo, uint8_t hi);
+void cpu_set_zn(Cpu *cpu, uint8_t value);
+uint8_t cpu_get_status(Cpu *cpu);
+void cpu_set_status(Cpu *cpu, uint8_t status);
+void cpu_push(Cpu *cpu, uint8_t value);
+void cpu_push16(Cpu *cpu, uint16_t value);
+uint8_t cpu_pull(Cpu *cpu);
+uint16_t cpu_pull16(Cpu *cpu);
 
 instruction_load_t cpu_load_absolute;
 instruction_load_t cpu_load_absolute_x;
@@ -189,29 +199,76 @@ instruction_store_t cpu_store_zeropage;
 instruction_store_t cpu_store_zeropage_x;
 instruction_store_t cpu_store_zeropage_y;
 
+instruction_address_t cpu_address_absolute;
+instruction_address_t cpu_address_absolute_x;
+instruction_address_t cpu_address_absolute_y;
+instruction_address_t cpu_address_accumulator;
+instruction_address_t cpu_address_immediate;
+instruction_address_t cpu_address_implied;
+instruction_address_t cpu_address_indirect;
+instruction_address_t cpu_address_indirect_x;
+instruction_address_t cpu_address_indirect_y;
+instruction_address_t cpu_address_relative;
+instruction_address_t cpu_address_zeropage;
+instruction_address_t cpu_address_zeropage_x;
+instruction_address_t cpu_address_zeropage_y;
+
 instruction_func_t cpu_adc;
 instruction_func_t cpu_and;
 instruction_func_t cpu_asl;
+instruction_func_t cpu_bcc;
+instruction_func_t cpu_bcs;
+instruction_func_t cpu_beq;
+instruction_func_t cpu_bit;
+instruction_func_t cpu_bmi;
+instruction_func_t cpu_bne;
+instruction_func_t cpu_bpl;
 instruction_func_t cpu_brk;
+instruction_func_t cpu_bvc;
+instruction_func_t cpu_bvs;
 instruction_func_t cpu_clc;
 instruction_func_t cpu_cld;
 instruction_func_t cpu_cli;
 instruction_func_t cpu_clv;
+instruction_func_t cpu_cmp;
+instruction_func_t cpu_cmp;
+instruction_func_t cpu_cpx;
+instruction_func_t cpu_cpy;
+instruction_func_t cpu_dec;
+instruction_func_t cpu_dex;
+instruction_func_t cpu_dey;
+instruction_func_t cpu_eor;
 instruction_func_t cpu_inc;
 instruction_func_t cpu_inx;
 instruction_func_t cpu_iny;
+instruction_func_t cpu_jmp;
+instruction_func_t cpu_jsr;
 instruction_func_t cpu_lda;
 instruction_func_t cpu_ldx;
 instruction_func_t cpu_ldy;
+instruction_func_t cpu_lsr;
 instruction_func_t cpu_nop;
+instruction_func_t cpu_ora;
+instruction_func_t cpu_pha;
+instruction_func_t cpu_php;
+instruction_func_t cpu_pla;
+instruction_func_t cpu_plp;
+instruction_func_t cpu_rol;
+instruction_func_t cpu_ror;
+instruction_func_t cpu_rti;
+instruction_func_t cpu_rts;
+instruction_func_t cpu_sbc;
+instruction_func_t cpu_sec;
+instruction_func_t cpu_sed;
+instruction_func_t cpu_sei;
 instruction_func_t cpu_sta;
 instruction_func_t cpu_stx;
 instruction_func_t cpu_sty;
 instruction_func_t cpu_tax;
 instruction_func_t cpu_tay;
+instruction_func_t cpu_tsx;
 instruction_func_t cpu_txa;
+instruction_func_t cpu_txs;
 instruction_func_t cpu_tya;
-
-bool u8sign(uint8_t value);
 
 #endif // INCLUDE_MOS6502_CPU_H_

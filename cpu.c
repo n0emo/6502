@@ -1,20 +1,86 @@
 #include "cpu.h"
+#include "int.h"
 #include <stdio.h>
 
-const CpuLoadStore load_stores[] = {
-    [AM_ABSOLUTE] = {cpu_load_absolute, cpu_store_absolute, 3},
-    [AM_ABSOLUTE_X] = {cpu_load_absolute_x, cpu_store_absolute_x, 3},
-    [AM_ABSOLUTE_Y] = {cpu_load_absolute_y, cpu_store_absolute_y, 3},
-    [AM_ACCUMULATOR] = {cpu_load_accumulator, cpu_store_accumulator, 1},
-    [AM_IMMEDIATE] = {cpu_load_immediate, cpu_store_immediate, 2},
-    [AM_IMPLIED] = {cpu_load_implied, cpu_store_implied, 1},
-    [AM_INDIRECT] = {cpu_load_indirect, cpu_store_indirect, 3},
-    [AM_INDIRECT_X] = {cpu_load_indirect_x, cpu_store_absolute_x, 2},
-    [AM_INDIRECT_Y] = {cpu_load_indirect_y, cpu_store_indirect_y, 2},
-    [AM_RELATIVE] = {cpu_load_relative, cpu_store_relative, 2},
-    [AM_ZEROPAGE] = {cpu_load_zeropage, cpu_store_zeropage, 2},
-    [AM_ZEROPAGE_X] = {cpu_load_zeropage_x, cpu_store_zeropage_x, 2},
-    [AM_ZEROPAGE_Y] = {cpu_load_zeropage_y, cpu_store_zeropage_y, 2},
+const Addressing addressings[] = {
+    [AM_ABSOLUTE] = {
+        cpu_load_absolute,
+        cpu_store_absolute,
+        cpu_address_absolute,
+        3,
+    },
+    [AM_ABSOLUTE_X] = {
+        cpu_load_absolute_x,
+        cpu_store_absolute_x,
+        cpu_address_absolute_x,
+        3,
+    },
+    [AM_ABSOLUTE_Y] = {
+        cpu_load_absolute_y,
+        cpu_store_absolute_y,
+        cpu_address_absolute_y,
+        3,
+    },
+    [AM_ACCUMULATOR] = {
+        cpu_load_accumulator,
+        cpu_store_accumulator,
+        cpu_address_accumulator,
+        1,
+    },
+    [AM_IMMEDIATE] = {
+        cpu_load_immediate,
+        cpu_store_immediate,
+        cpu_address_immediate,
+        2,
+    },
+    [AM_IMPLIED] = {
+        cpu_load_implied,
+        cpu_store_implied,
+        cpu_address_implied,
+        1,
+    },
+    [AM_INDIRECT] = {
+        cpu_load_indirect,
+        cpu_store_indirect,
+        cpu_address_indirect,
+        3,
+    },
+    [AM_INDIRECT_X] = {
+        cpu_load_indirect_x,
+        cpu_store_absolute_x,
+        cpu_address_indirect_x,
+        2,
+    },
+    [AM_INDIRECT_Y] = {
+        cpu_load_indirect_y,
+        cpu_store_indirect_y,
+        cpu_address_indirect_y,
+        2,
+    },
+    [AM_RELATIVE] = {
+        cpu_load_relative,
+        cpu_store_relative,
+        cpu_address_relative,
+        2,
+    },
+    [AM_ZEROPAGE] = {
+        cpu_load_zeropage,
+        cpu_store_zeropage,
+        cpu_address_zeropage,
+        2,
+    },
+    [AM_ZEROPAGE_X] = {
+        cpu_load_zeropage_x,
+        cpu_store_zeropage_x,
+        cpu_address_zeropage_x,
+        2,
+    },
+    [AM_ZEROPAGE_Y] = {
+        cpu_load_zeropage_y,
+        cpu_store_zeropage_y,
+        cpu_address_zeropage_y,
+        2,
+    },
 };
 
 instruction_func_t *const inst_funcs[] = {
@@ -22,63 +88,64 @@ instruction_func_t *const inst_funcs[] = {
     [IT_ALR] = NULL, // Illegal
     [IT_ANC] = NULL, // Illegal
     [IT_AND] = cpu_and,
-    [IT_ANE] = NULL,
+    [IT_ANE] = NULL, // Illegal
     [IT_ARR] = NULL, // Illegal
     [IT_ASL] = cpu_asl,
     [IT_AXS] = NULL, // Illegal
-    [IT_BCC] = NULL,
-    [IT_BCS] = NULL,
-    [IT_BEQ] = NULL,
-    [IT_BIT] = NULL,
-    [IT_BMI] = NULL,
-    [IT_BNE] = NULL,
+    [IT_BCC] = cpu_bcc,
+    [IT_BCS] = cpu_bcs,
+    [IT_BEQ] = cpu_beq,
+    [IT_BIT] = cpu_bit,
+    [IT_BMI] = cpu_bmi,
+    [IT_BNE] = cpu_bne,
+    [IT_BPL] = cpu_bpl,
     [IT_BRK] = cpu_brk,
-    [IT_BVC] = NULL,
-    [IT_BVS] = NULL,
+    [IT_BVC] = cpu_bvc,
+    [IT_BVS] = cpu_bvs,
     [IT_CLC] = cpu_clc,
     [IT_CLD] = cpu_cld,
     [IT_CLI] = cpu_cli,
     [IT_CLV] = cpu_clv,
-    [IT_CMP] = NULL,
-    [IT_CPX] = NULL,
-    [IT_CPY] = NULL,
+    [IT_CMP] = cpu_cmp,
+    [IT_CPX] = cpu_cpx,
+    [IT_CPY] = cpu_cpy,
     [IT_DCP] = NULL, // Illegal
-    [IT_DEC] = NULL,
-    [IT_DEX] = NULL,
-    [IT_DEY] = NULL,
-    [IT_EOR] = NULL,
+    [IT_DEC] = cpu_dec,
+    [IT_DEX] = cpu_dex,
+    [IT_DEY] = cpu_dey,
+    [IT_EOR] = cpu_eor,
     [IT_IGN] = NULL, // Illegal
     [IT_INC] = cpu_inc,
     [IT_INX] = cpu_inx,
     [IT_INY] = cpu_iny,
     [IT_ISC] = NULL, // Illegal
     [IT_JAM] = NULL, // Illegal
-    [IT_JMP] = NULL,
-    [IT_JSR] = NULL,
+    [IT_JMP] = cpu_jmp,
+    [IT_JSR] = cpu_jsr,
     [IT_LAX] = NULL, // Illegal
     [IT_LDA] = cpu_lda,
     [IT_LDX] = cpu_ldx,
     [IT_LDY] = cpu_ldy,
-    [IT_LSR] = NULL,
+    [IT_LSR] = cpu_lsr,
     [IT_LXA] = NULL, // Illegal
-    [IT_NOP] = NULL,
-    [IT_ORA] = NULL,
-    [IT_PHA] = NULL,
-    [IT_PHP] = NULL,
-    [IT_PLA] = NULL,
-    [IT_PLP] = NULL,
+    [IT_NOP] = cpu_nop,
+    [IT_ORA] = cpu_ora,
+    [IT_PHA] = cpu_pha,
+    [IT_PHP] = cpu_php,
+    [IT_PLA] = cpu_pla,
+    [IT_PLP] = cpu_plp,
     [IT_RLA] = NULL, // Illegal
-    [IT_ROL] = NULL,
-    [IT_ROR] = NULL,
+    [IT_ROL] = cpu_rol,
+    [IT_ROR] = cpu_ror,
     [IT_RRA] = NULL, // Illegal
-    [IT_RTI] = NULL,
-    [IT_RTS] = NULL,
+    [IT_RTI] = cpu_rti,
+    [IT_RTS] = cpu_rts,
     [IT_SAX] = NULL, // Illegal
-    [IT_SBC] = NULL,
+    [IT_SBC] = cpu_sbc,
     [IT_SBX] = NULL, // Illegal
-    [IT_SEC] = NULL,
-    [IT_SED] = NULL,
-    [IT_SEI] = NULL,
+    [IT_SEC] = cpu_sec,
+    [IT_SED] = cpu_sed,
+    [IT_SEI] = cpu_sei,
     [IT_SHA] = NULL, // Illegal
     [IT_SHX] = NULL, // Illegal
     [IT_SHY] = NULL, // Illegal
@@ -91,11 +158,11 @@ instruction_func_t *const inst_funcs[] = {
     [IT_TAS] = NULL, // Illegal
     [IT_TAX] = cpu_tax,
     [IT_TAY] = cpu_tay,
-    [IT_TSX] = NULL,
+    [IT_TSX] = cpu_tsx,
     [IT_TXA] = cpu_txa,
-    [IT_TXS] = NULL,
+    [IT_TXS] = cpu_txs,
     [IT_TYA] = cpu_tya,
-    [IT_USBC] = NULL,
+    [IT_USBC] = NULL, // Illegal
 };
 
 const Instruction instructions[256] = {
@@ -372,62 +439,86 @@ const Instruction instructions[256] = {
     [0xFF] = {IT_ISC, AM_ABSOLUTE_X, 7},
 };
 
-const char *cpu_inst_names[] = {
-    [IT_ADC] = "ADC",
-    [IT_ALR] = "ALR",
-    [IT_ANC] = "ANC",
-    [IT_AND] = "AND",
-    [IT_ARR] = "ARR",
-    [IT_ASL] = "ASL",
-    [IT_AXS] = "AXS",
-    [IT_BIT] = "BIT",
-    [IT_BRK] = "BRK",
-    [IT_CLC] = "CLC",
-    [IT_CLD] = "CLD",
-    [IT_CLI] = "CLI",
-    [IT_CLV] = "CLV",
-    [IT_CMP] = "CMP",
-    [IT_CPX] = "CPX",
-    [IT_CPY] = "CPY",
-    [IT_DCP] = "DCP",
-    [IT_DEC] = "DEC",
-    [IT_DEX] = "DEX",
-    [IT_DEY] = "DEY",
-    [IT_EOR] = "EOR",
-    [IT_IGN] = "IGN",
-    [IT_INC] = "INC",
-    [IT_INX] = "INX",
-    [IT_INY] = "INY",
-    [IT_ISC] = "ISC",
-    [IT_JMP] = "JMP",
-    [IT_JSR] = "JSR",
-    [IT_LAX] = "LAX",
-    [IT_LDA] = "LDA",
-    [IT_LDX] = "LDX",
-    [IT_LDY] = "LDY",
-    [IT_LSR] = "LSR",
-    [IT_NOP] = "NOP",
-    [IT_ORA] = "ORA",
-    [IT_RLA] = "RLA",
-    [IT_ROR] = "ROR",
-    [IT_RRA] = "RRA",
-    [IT_RTI] = "RTI",
-    [IT_RTS] = "RTS",
-    [IT_SAX] = "SAX",
-    [IT_SBC] = "SBC",
-    [IT_SEC] = "SEC",
-    [IT_SED] = "SED",
-    [IT_SEI] = "SEI",
-    [IT_SKB] = "SKB",
-    [IT_SLO] = "SLO",
-    [IT_SRE] = "SRE",
-    [IT_STA] = "STA",
-    [IT_STX] = "STX",
-    [IT_STY] = "STY",
-    [IT_TAX] = "TAX",
-    [IT_TAY] = "TAY",
-    [IT_TXA] = "TXA",
-    [IT_TYA] = "TYA",
+const char *const cpu_inst_names[] = {
+    "ADC",
+    "ALR", // Illegal
+    "ANC", // Illegal
+    "AND",
+    "ANE",
+    "ARR", // Illegal
+    "ASL",
+    "AXS", // Illegal
+    "BCC",
+    "BCS",
+    "BEQ",
+    "BIT",
+    "BMI",
+    "BNE",
+    "BPL",
+    "BRK",
+    "BVC",
+    "BVS",
+    "CLC",
+    "CLD",
+    "CLI",
+    "CLV",
+    "CMP",
+    "CPX",
+    "CPY",
+    "DCP", // Illegal
+    "DEC",
+    "DEX",
+    "DEY",
+    "EOR",
+    "IGN", // Illegal
+    "INC",
+    "INX",
+    "INY",
+    "ISC", // Illegal
+    "JAM", // Illegal
+    "JMP",
+    "JSR",
+    "LAX", // Illegal
+    "LDA",
+    "LDX",
+    "LDY",
+    "LSR",
+    "LXA", // Illegal
+    "NOP",
+    "ORA",
+    "PHA",
+    "PHP",
+    "PLA",
+    "PLP",
+    "RLA", // Illegal
+    "ROL",
+    "ROR",
+    "RRA", // Illegal
+    "RTI",
+    "RTS",
+    "SAX", // Illegal
+    "SBC",
+    "SBX", // Illegal
+    "SEC",
+    "SED",
+    "SEI",
+    "SHA", // Illegal
+    "SHX", // Illegal
+    "SHY", // Illegal
+    "SKB", // Illegal
+    "SLO", // Illegal
+    "SRE", // Illegal
+    "STA",
+    "STX",
+    "STY",
+    "TAS", // Illegal
+    "TAX",
+    "TAY",
+    "TSX",
+    "TXA",
+    "TXS",
+    "TYA",
+    "USBC", // Illegal
 };
 
 void cpu_print(Cpu *cpu)
@@ -463,197 +554,247 @@ void cpu_init(Cpu *cpu, Memory *mem)
 
 void cpu_reset(Cpu *cpu)
 {
-    uint8_t pc_fst = cpu->mem->data[CPU_RESET_VECTOR_1];
-    uint8_t pc_snd = cpu->mem->data[CPU_RESET_VECTOR_2];
+    uint8_t pc_fst = mem_read(cpu->mem, CPU_RESET_VECTOR_1);
+    uint8_t pc_snd = mem_read(cpu->mem, CPU_RESET_VECTOR_2);
     cpu->PC = (pc_fst << 8) | pc_snd;
 }
 
 void cpu_execute(Cpu *cpu)
 {
-    uint8_t inst_code = cpu->mem->data[cpu->PC];
+    uint8_t inst_code = mem_read(cpu->mem, cpu->PC);
     Instruction instruction = instructions[inst_code];
     printf("Executing %s\n", cpu_inst_names[instruction.type]);
-    size_t inst_size = load_stores[instruction.address_mode].size;
-    uint16_t data = cpu_read16(cpu, cpu->PC + 1);
-    inst_funcs[instruction.type](cpu, load_stores[instruction.address_mode], data);
+    size_t inst_size = addressings[instruction.address_mode].size;
+    uint16_t data = mem_read16(cpu->mem, cpu->PC + 1);
+    inst_funcs[instruction.type](cpu, addressings[instruction.address_mode], data);
     cpu->PC += inst_size;
     cpu_print(cpu);
 }
 
-uint16_t cpu_read16(Cpu *cpu, uint16_t address)
-{
-    uint8_t lo = cpu->mem->data[address];
-    uint8_t hi = cpu->mem->data[address + 1];
-    return u16_from_lohi(lo, hi);
-}
-
-uint8_t u16_lo(uint16_t u16)
-{
-    return u16 & 0x00FF;
-}
-
-uint8_t u16_hi(uint16_t u16)
-{
-    return u16 & 0xFF00 >> 8;
-}
-
-uint16_t u16_from_lohi(uint8_t lo, uint8_t hi)
-{
-    return lo | (hi << 8);
-}
-
 uint8_t cpu_load_absolute(Cpu *cpu, uint16_t operand)
 {
-    return cpu->mem->data[operand];
+    uint16_t address = cpu_address_absolute(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
+
 uint8_t cpu_load_absolute_x(Cpu *cpu, uint16_t operand)
 {
-    return cpu->mem->data[operand + cpu->X];
+    uint16_t address = cpu_address_absolute_x(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_absolute_y(Cpu *cpu, uint16_t operand)
 {
-    return cpu->mem->data[operand + cpu->Y];
+    uint16_t address = cpu_address_absolute_y(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_accumulator(Cpu *cpu, uint16_t operand)
 {
-    (void)operand;
+    UNUSED(operand);
     return cpu->A;
 }
 
 uint8_t cpu_load_immediate(Cpu *cpu, uint16_t operand)
 {
-    (void)cpu;
+    UNUSED(cpu);
     return u16_lo(operand);
 }
 
 uint8_t cpu_load_implied(Cpu *cpu, uint16_t operand)
 {
-    (void)cpu;
-    (void)operand;
+    UNUSED2(cpu, operand);
     return 0;
 }
 
 uint8_t cpu_load_indirect(Cpu *cpu, uint16_t operand)
 {
-    uint16_t address = cpu_read16(cpu, operand);
-    return cpu->mem->data[address];
+    uint16_t address = cpu_address_indirect(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_indirect_x(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address_to_address = operand + cpu->X;
-    uint8_t address = u16_lo(cpu_read16(cpu, address_to_address));
-    return cpu->mem->data[address];
+    uint16_t address = cpu_address_indirect_x(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_indirect_y(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address = u16_lo(cpu_read16(cpu, operand)) + cpu->Y;
-    return cpu->mem->data[address];
+    uint16_t address = cpu_address_indirect_y(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_relative(Cpu *cpu, uint16_t operand)
 {
-    return cpu->PC + u16_lo(operand);
+    uint16_t address = cpu_address_relative(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_zeropage(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address = u16_lo(operand);
-    return cpu->mem->data[address];
+    uint8_t address = cpu_address_zeropage(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_zeropage_x(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address = u16_lo(operand) + cpu->X;
-    return cpu->mem->data[address];
+    uint8_t address = cpu_address_zeropage_x(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 uint8_t cpu_load_zeropage_y(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address = u16_lo(operand) + cpu->Y;
-    return cpu->mem->data[address];
+    uint8_t address = cpu_address_zeropage_y(cpu, operand);
+    return mem_read(cpu->mem, address);
 }
 
 void cpu_store_absolute(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    cpu->mem->data[operand] = value;
+    uint16_t address = cpu_address_absolute(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_absolute_x(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    cpu->mem->data[operand + cpu->X] = value;
+    uint16_t address = cpu_address_absolute_x(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_absolute_y(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    cpu->mem->data[operand + cpu->Y] = value;
+    uint16_t address = cpu_address_absolute_y(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_accumulator(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    (void)operand;
-    cpu->A = value;
+    UNUSED3(cpu, operand, value);
 }
 
 void cpu_store_immediate(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    (void)cpu;
-    (void)operand;
-    (void)value;
+    UNUSED3(cpu, operand, value);
 }
 
 void cpu_store_implied(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    (void)cpu;
-    (void)operand;
-    (void)value;
+    UNUSED3(cpu, operand, value);
 }
 
 void cpu_store_indirect(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint16_t address = cpu_read16(cpu, operand);
-    cpu->mem->data[address] = value;
+    uint16_t address = cpu_address_indirect(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_indirect_x(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint8_t address_to_address = operand + cpu->X;
-    uint8_t address = u16_lo(cpu_read16(cpu, address_to_address));
-    cpu->mem->data[address] = value;
+    uint16_t address = cpu_address_indirect_x(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_indirect_y(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint8_t address = u16_lo(cpu_read16(cpu, operand)) + cpu->Y;
-    cpu->mem->data[address] = value;
+    uint16_t address = cpu_address_indirect_y(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_relative(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    (void)cpu;
-    (void)operand;
-    (void)value;
+    uint16_t address = cpu_address_relative(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_zeropage(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint8_t address = u16_lo(operand);
-    cpu->mem->data[address] = value;
+    uint8_t address = cpu_address_zeropage(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_zeropage_x(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint8_t address = u16_lo(operand) + cpu->Y;
-    cpu->mem->data[address] = value;
+    uint8_t address = cpu_address_zeropage_x(cpu, operand);
+    mem_write(cpu->mem, address, value);
 }
 
 void cpu_store_zeropage_y(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint8_t address = u16_lo(operand) + cpu->Y;
-    cpu->mem->data[address] = value;
+    uint8_t address = cpu_address_zeropage_y(cpu, operand);
+    mem_write(cpu->mem, address, value);
+}
+
+uint16_t cpu_address_absolute(Cpu *cpu, uint16_t operand)
+{
+    UNUSED(cpu);
+    return operand;
+}
+
+uint16_t cpu_address_absolute_x(Cpu *cpu, uint16_t operand)
+{
+    return operand + cpu->X;
+}
+
+uint16_t cpu_address_absolute_y(Cpu *cpu, uint16_t operand)
+{
+    return operand + cpu->Y;
+}
+
+uint16_t cpu_address_accumulator(Cpu *cpu, uint16_t operand)
+{
+    UNUSED2(cpu, operand);
+    return 0;
+}
+
+uint16_t cpu_address_immediate(Cpu *cpu, uint16_t operand)
+{
+    UNUSED2(cpu, operand);
+    return 0;
+}
+
+uint16_t cpu_address_implied(Cpu *cpu, uint16_t operand)
+{
+    UNUSED2(cpu, operand);
+    return 0;
+}
+
+uint16_t cpu_address_indirect(Cpu *cpu, uint16_t operand)
+{
+    return mem_read16(cpu->mem, operand);
+}
+
+uint16_t cpu_address_indirect_x(Cpu *cpu, uint16_t operand)
+{
+    uint8_t address_to_address = operand + cpu->X;
+    return u16_lo(mem_read16(cpu->mem, address_to_address));
+}
+
+uint16_t cpu_address_indirect_y(Cpu *cpu, uint16_t operand)
+{
+    return u16_lo(mem_read16(cpu->mem, operand)) + cpu->Y;
+}
+
+uint16_t cpu_address_relative(Cpu *cpu, uint16_t operand)
+{
+    uint8_t unsigned_offset = u16_lo(operand);
+    int8_t offset = *(int8_t *)&unsigned_offset;
+    return cpu->PC + offset;
+}
+
+uint16_t cpu_address_zeropage(Cpu *cpu, uint16_t operand)
+{
+    UNUSED(cpu);
+    return u16_lo(operand);
+}
+
+uint16_t cpu_address_zeropage_x(Cpu *cpu, uint16_t operand)
+{
+    return u16_lo(operand) + cpu->X;
+}
+
+uint16_t cpu_address_zeropage_y(Cpu *cpu, uint16_t operand)
+{
+    return u16_lo(operand) + cpu->Y;
 }
 
 void cpu_set_z(Cpu *cpu, uint8_t value)
@@ -672,10 +813,46 @@ void cpu_set_zn(Cpu *cpu, uint8_t value)
     cpu_set_n(cpu, value);
 }
 
-void cpu_adc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+uint8_t cpu_get_status(Cpu *cpu)
+{
+    return cpu->N << 7 |
+           cpu->V << 6 |
+           cpu->U << 5 |
+           cpu->B << 4 |
+           cpu->D << 3 |
+           cpu->I << 2 |
+           cpu->Z << 1 |
+           cpu->C << 0;
+}
+
+void cpu_push(Cpu *cpu, uint8_t value)
+{
+    mem_write(cpu->mem, 0x100 | cpu->SP, value);
+    cpu->SP--;
+}
+
+uint8_t cpu_pull(Cpu *cpu)
+{
+    cpu->SP++;
+    return mem_read(cpu->mem, 0x100 | cpu->SP);
+}
+
+void cpu_set_status(Cpu *cpu, uint8_t status)
+{
+    cpu->N = status & (1 << 7);
+    cpu->V = status & (1 << 6);
+    cpu->U = status & (1 << 5);
+    cpu->B = status & (1 << 4);
+    cpu->D = status & (1 << 3);
+    cpu->I = status & (1 << 2);
+    cpu->Z = status & (1 << 1);
+    cpu->C = status & (1 << 0);
+}
+
+void cpu_adc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t a = cpu->A;
-    uint8_t b = ls.load(cpu, data);
+    uint8_t b = addressing.load(cpu, operand);
     bool c = cpu->C;
     cpu->A = a + b + c;
     cpu_set_zn(cpu, cpu->A);
@@ -683,151 +860,370 @@ void cpu_adc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
     cpu->V = (u8sign(a) == u8sign(b) && u8sign(cpu->A) != u8sign(b));
 }
 
-void cpu_and(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_and(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t b = ls.load(cpu, data);
+    uint8_t b = addressing.load(cpu, operand);
     cpu->A = cpu->A & b;
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_asl(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_asl(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    size_t a = ls.load(cpu, data);
+    size_t a = addressing.load(cpu, operand);
     a = a << 1;
 }
 
-void cpu_brk(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_bcc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->B = 0;
-    (void)ls;
-    (void)data;
+    if (cpu->C == 0)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
 }
 
-void cpu_clc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_bcs(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    if (cpu->C == 1)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_beq(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->Z == 1)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_bit(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t result = cpu->A & addressing.load(cpu, operand);
+    cpu_set_zn(cpu, result);
+    cpu->V = result & (1 << 6);
+}
+
+void cpu_bmi(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->N == 1)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_bne(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->Z == 0)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_bpl(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->N == 0)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_brk(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->B = 0;
+}
+
+void cpu_bvc(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->V == 0)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_bvs(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    if (cpu->V == 1)
+    {
+        cpu->PC = addressing.address(cpu, operand);
+    }
+}
+
+void cpu_clc(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
     cpu->C = 0;
 }
 
-void cpu_cld(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_cld(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->D = 0;
 }
 
-void cpu_cli(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_cli(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->I = 0;
 }
 
-void cpu_clv(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_clv(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->V = 0;
 }
 
-void cpu_inc(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_cmp(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    uint8_t a = cpu->A, b = addressing.load(cpu, operand);
+    cpu_set_zn(cpu, a - b);
+    cpu->C = a > b;
+}
+
+void cpu_cpx(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = cpu->X, b = addressing.load(cpu, operand);
+    cpu_set_zn(cpu, a - b);
+    cpu->C = a > b;
+}
+
+void cpu_cpy(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = cpu->Y, b = addressing.load(cpu, operand);
+    cpu_set_zn(cpu, a - b);
+    cpu->C = a > b;
+}
+
+void cpu_dec(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = addressing.load(cpu, operand);
+    a--;
+    addressing.store(cpu, operand, a);
+}
+
+void cpu_dex(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->X--;
+}
+
+void cpu_dey(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->Y--;
+}
+
+void cpu_eor(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    cpu->A = cpu->A ^ addressing.load(cpu, operand);
+    cpu_set_zn(cpu, cpu->A);
+}
+
+void cpu_inc(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
     cpu->A++;
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_inx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_inx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->X++;
     cpu_set_zn(cpu, cpu->X);
 }
 
-void cpu_iny(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_iny(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->Y++;
     cpu_set_zn(cpu, cpu->Y);
 }
 
-void cpu_lda(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_jmp(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->A = ls.load(cpu, data);
+    cpu->PC = addressing.address(cpu, operand);
+}
+
+void cpu_jsr(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    cpu_push16(cpu, cpu->PC);
+    cpu->PC = addressing.address(cpu, operand);
+}
+
+void cpu_lda(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    cpu->A = addressing.load(cpu, operand);
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_ldx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_ldx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->X = ls.load(cpu, data);
+    cpu->X = addressing.load(cpu, operand);
     cpu_set_zn(cpu, cpu->X);
 }
 
-void cpu_ldy(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_ldy(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->Y = ls.load(cpu, data);
+    cpu->Y = addressing.load(cpu, operand);
     cpu_set_zn(cpu, cpu->Y);
 }
 
-void cpu_nop(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_lsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)cpu;
-    (void)ls;
-    (void)data;
+    uint8_t a = addressing.load(cpu, operand);
+    cpu->C = a & 1;
+    a = a >> 1;
+    cpu_set_zn(cpu, a);
+    addressing.store(cpu, operand, a);
 }
 
-void cpu_sta(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    ls.store(cpu, data, cpu->A);
+    UNUSED3(cpu, addressing, operand);
 }
 
-void cpu_stx(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_ora(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    ls.store(cpu, data, cpu->X);
+    cpu->A = cpu->A | addressing.load(cpu, operand);
+    cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_sty(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_pha(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    ls.store(cpu, data, cpu->Y);
+    UNUSED2(addressing, operand);
+    cpu_push(cpu, cpu->A);
 }
 
-void cpu_tax(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_php(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
+    cpu_push(cpu, cpu_get_status(cpu));
+}
+
+void cpu_pla(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->A = cpu_pull(cpu);
+}
+
+void cpu_plp(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu_set_status(cpu, cpu_pull(cpu));
+}
+
+void cpu_rol(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = addressing.load(cpu, operand);
+    cpu->C = a & (1 << 7);
+    a = (a << 1) | cpu->C;
+    addressing.store(cpu, operand, a);
+    cpu_set_zn(cpu, a);
+}
+
+void cpu_ror(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = addressing.load(cpu, operand);
+    cpu->C = a & 1;
+    a = (a >> 1) | (cpu->C << 7);
+    addressing.store(cpu, operand, a);
+    cpu_set_zn(cpu, a);
+}
+
+void cpu_rti(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    cpu_set_status(cpu, cpu_pull(cpu));
+    cpu->PC = cpu_pull16(cpu);
+}
+
+void cpu_rts(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint16_t address = cpu_pull16(cpu);
+    cpu->PC = address;
+}
+
+void cpu_sbc(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    uint8_t a = cpu->A;
+    uint8_t b = addressing.load(cpu, operand);
+    uint8_t c = cpu->C;
+    cpu->A = a - b - !c;
+    cpu->C = a < b + !c;
+    cpu->V = (u8sign(a) == u8sign(b) && u8sign(cpu->A) != u8sign(b));
+    cpu_set_zn(cpu, a);
+}
+
+void cpu_sec(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->C = 1;
+}
+
+void cpu_sed(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->D = 1;
+}
+
+void cpu_sei(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
+    cpu->I = 1;
+}
+
+void cpu_sta(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    addressing.store(cpu, operand, cpu->A);
+}
+
+void cpu_stx(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    addressing.store(cpu, operand, cpu->X);
+}
+
+void cpu_sty(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    addressing.store(cpu, operand, cpu->Y);
+}
+
+void cpu_tax(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
     cpu->X = cpu->A;
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_tay(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_tay(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->Y = cpu->A;
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_txa(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_tsx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
+    cpu->X = cpu->SP;
+}
+
+void cpu_txa(Cpu *cpu, Addressing addressing, uint16_t operand)
+{
+    UNUSED2(addressing, operand);
     cpu->A = cpu->X;
     cpu_set_zn(cpu, cpu->A);
 }
 
-void cpu_tya(Cpu *cpu, CpuLoadStore ls, uint16_t data)
+void cpu_tya(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    (void)ls;
-    (void)data;
+    UNUSED2(addressing, operand);
     cpu->A = cpu->Y;
     cpu_set_zn(cpu, cpu->A);
 }
 
-bool u8sign(uint8_t value)
+void cpu_txs(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    return value & 0x80;
+    UNUSED2(addressing, operand);
+    cpu->SP = cpu->X;
 }
