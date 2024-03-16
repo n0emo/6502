@@ -141,10 +141,10 @@ typedef uint16_t(instruction_address_t)(Cpu *cpu, uint16_t operand);
 
 typedef struct
 {
-    instruction_load_t *load;
-    instruction_store_t *store;
-    instruction_address_t *address;
-    size_t size;
+    instruction_load_t *const load;
+    instruction_store_t *const store;
+    instruction_address_t *const address;
+    const size_t size;
 } Addressing;
 
 typedef void(instruction_func_t)(Cpu *, Addressing, uint16_t);
@@ -154,6 +154,7 @@ typedef struct Instruction
     const InstructionType type;
     const AddressMode address_mode;
     const uint64_t cycles;
+    const bool increment_pc;
 } Instruction;
 
 const char *cpu_inst_name(InstructionType type);
