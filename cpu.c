@@ -1147,12 +1147,14 @@ void cpu_ror(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_rti(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
+    UNUSED2(addressing, operand);
     cpu_set_status(cpu, cpu_pull(cpu));
     cpu->PC = cpu_pull16(cpu);
 }
 
 void cpu_rts(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
+    UNUSED2(addressing, operand);
     uint16_t address = cpu_pull16(cpu);
     cpu->PC = address;
 }
