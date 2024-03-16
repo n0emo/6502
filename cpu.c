@@ -831,10 +831,23 @@ void cpu_push(Cpu *cpu, uint8_t value)
     cpu->SP--;
 }
 
+void cpu_push16(Cpu *cpu, uint16_t value)
+{
+    cpu_push(cpu, u16_hi(value));
+    cpu_push(cpu, u16_lo(value));
+}
+
 uint8_t cpu_pull(Cpu *cpu)
 {
     cpu->SP++;
     return mem_read(cpu->mem, 0x100 | cpu->SP);
+}
+
+uint16_t cpu_pull16(Cpu *cpu)
+{
+    uint8_t lo = cpu_pull(cpu);
+    uint8_t hi = cpu_pull(cpu);
+    return u16_from_lohi(lo, hi);
 }
 
 void cpu_set_status(Cpu *cpu, uint8_t status)
