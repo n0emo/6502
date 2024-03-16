@@ -154,7 +154,7 @@ instruction_func_t *const inst_funcs[] = {
     [IT_SRE] = NULL, // Illegal
     [IT_STA] = cpu_sta,
     [IT_STX] = cpu_stx,
-    [IT_STY] = cpu_stx,
+    [IT_STY] = cpu_sty,
     [IT_TAS] = NULL, // Illegal
     [IT_TAX] = cpu_tax,
     [IT_TAY] = cpu_tay,
@@ -166,24 +166,24 @@ instruction_func_t *const inst_funcs[] = {
 };
 
 const Instruction instructions[256] = {
-    [0x00] = {IT_BRK,  AM_IMPLIED,     7, false},
+    [0x00] = {IT_BRK,  AM_IMPLIED,     7, true },
     [0x01] = {IT_ORA,  AM_INDIRECT_X,  6, true },
     [0x02] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x03] = {IT_SLO,  AM_INDIRECT_X,  8, true }, // Illegal
     [0x04] = {IT_NOP,  AM_ZEROPAGE,    3, true }, // Illegal
-    [0x05] = {IT_ORA,  AM_ZEROPAGE,    3, true },
-    [0x06] = {IT_ASL,  AM_ZEROPAGE,    5, true },
+    [0x05] = {IT_ORA,  AM_ZEROPAGE,    3, true }, // manually tested
+    [0x06] = {IT_ASL,  AM_ZEROPAGE,    5, true }, // manually tested
     [0x07] = {IT_SLO,  AM_ZEROPAGE,    5, true }, // Illegal
     [0x08] = {IT_PHP,  AM_IMPLIED,     3, true },
-    [0x09] = {IT_ORA,  AM_IMMEDIATE,   2, true },
-    [0x0A] = {IT_ASL,  AM_ACCUMULATOR, 2, true },
+    [0x09] = {IT_ORA,  AM_IMMEDIATE,   2, true }, // manually tested
+    [0x0A] = {IT_ASL,  AM_ACCUMULATOR, 2, true }, // manually tested
     [0x0B] = {IT_ANC,  AM_IMMEDIATE,   2, true }, // Illegal
     [0x0C] = {IT_NOP,  AM_ABSOLUTE,    4, true }, // Illegal
-    [0x0D] = {IT_ORA,  AM_ABSOLUTE,    4, true },
-    [0x0E] = {IT_ASL,  AM_ABSOLUTE,    6, true },
+    [0x0D] = {IT_ORA,  AM_ABSOLUTE,    4, true }, // manually tested
+    [0x0E] = {IT_ASL,  AM_ABSOLUTE,    6, true }, // manually tested
     [0x0F] = {IT_SLO,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0x10] = {IT_BPL,  AM_RELATIVE,    2, false},
+    [0x10] = {IT_BPL,  AM_RELATIVE,    2, true },
     [0x11] = {IT_ORA,  AM_INDIRECT_Y,  5, true },
     [0x12] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x13] = {IT_SLO,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -200,7 +200,7 @@ const Instruction instructions[256] = {
     [0x1E] = {IT_ASL,  AM_ABSOLUTE_X,  7, true },
     [0x1F] = {IT_SLO,  AM_ABSOLUTE_X,  7, true }, // Illegal
 
-    [0x20] = {IT_JSR,  AM_ABSOLUTE,    6, false},
+    [0x20] = {IT_JSR,  AM_ABSOLUTE,    6, true }, // manually tested
     [0x21] = {IT_AND,  AM_INDIRECT_X,  6, true },
     [0x22] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x23] = {IT_RLA,  AM_INDIRECT_X,  8, true }, // Illegal
@@ -217,7 +217,7 @@ const Instruction instructions[256] = {
     [0x2E] = {IT_ROL,  AM_ABSOLUTE,    6, true },
     [0x2F] = {IT_RLA,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0x30] = {IT_BMI,  AM_RELATIVE,    2, false},
+    [0x30] = {IT_BMI,  AM_RELATIVE,    2, true },
     [0x31] = {IT_AND,  AM_INDIRECT_Y,  5, true },
     [0x32] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x33] = {IT_RLA,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -242,16 +242,16 @@ const Instruction instructions[256] = {
     [0x45] = {IT_EOR,  AM_ZEROPAGE,    3, true },
     [0x46] = {IT_LSR,  AM_ZEROPAGE,    5, true },
     [0x47] = {IT_SRE,  AM_ZEROPAGE,    5, true }, // Illegal
-    [0x48] = {IT_PHA,  AM_IMPLIED,     3, true },
+    [0x48] = {IT_PHA,  AM_IMPLIED,     3, true }, // manually tested
     [0x49] = {IT_EOR,  AM_IMMEDIATE,   2, true },
     [0x4A] = {IT_LSR,  AM_ACCUMULATOR, 2, true },
     [0x4B] = {IT_ALR,  AM_IMMEDIATE,   2, true }, // Illegal
-    [0x4C] = {IT_JMP,  AM_ABSOLUTE,    3, false},
+    [0x4C] = {IT_JMP,  AM_ABSOLUTE,    3, false}, // manually tested
     [0x4D] = {IT_EOR,  AM_ABSOLUTE,    4, true },
     [0x4E] = {IT_LSR,  AM_ABSOLUTE,    6, true },
     [0x4F] = {IT_SRE,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0x50] = {IT_BVC,  AM_RELATIVE,    2, false},
+    [0x50] = {IT_BVC,  AM_RELATIVE,    2, true },
     [0x51] = {IT_EOR,  AM_INDIRECT_Y,  5, true },
     [0x52] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x53] = {IT_SRE,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -268,7 +268,7 @@ const Instruction instructions[256] = {
     [0x5E] = {IT_LSR,  AM_ABSOLUTE_X,  7, true },
     [0x5F] = {IT_SRE,  AM_ABSOLUTE_X,  7, true }, // Illegal
 
-    [0x60] = {IT_RTS,  AM_IMPLIED,     6, false},
+    [0x60] = {IT_RTS,  AM_IMPLIED,     6, false}, // manually tested
     [0x61] = {IT_ADC,  AM_INDIRECT_X,  6, true },
     [0x62] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x63] = {IT_RRA,  AM_INDIRECT_X,  8, true }, // Illegal
@@ -276,7 +276,7 @@ const Instruction instructions[256] = {
     [0x65] = {IT_ADC,  AM_ZEROPAGE,    3, true },
     [0x66] = {IT_ROR,  AM_ZEROPAGE,    5, true },
     [0x67] = {IT_RRA,  AM_ZEROPAGE,    5, true }, // Illegal
-    [0x68] = {IT_PLA,  AM_IMPLIED,     4, true },
+    [0x68] = {IT_PLA,  AM_IMPLIED,     4, true }, // manually tested
     [0x69] = {IT_ADC,  AM_IMMEDIATE,   2, true },
     [0x6A] = {IT_ROR,  AM_ACCUMULATOR, 2, true },
     [0x6B] = {IT_ARR,  AM_IMMEDIATE,   2, true }, // Illegal
@@ -285,7 +285,7 @@ const Instruction instructions[256] = {
     [0x6E] = {IT_ROR,  AM_ABSOLUTE,    6, true },
     [0x6F] = {IT_RRA,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0x70] = {IT_BVS,  AM_RELATIVE,    2, false},
+    [0x70] = {IT_BVS,  AM_RELATIVE,    2, true },
     [0x71] = {IT_ADC,  AM_INDIRECT_Y,  5, true },
     [0x72] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x73] = {IT_RRA,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -307,19 +307,19 @@ const Instruction instructions[256] = {
     [0x82] = {IT_NOP,  AM_IMMEDIATE,   2, true }, // Illegal
     [0x83] = {IT_SAX,  AM_INDIRECT_X,  6, true }, // Illegal
     [0x84] = {IT_STY,  AM_ZEROPAGE,    3, true },
-    [0x85] = {IT_STA,  AM_ZEROPAGE,    3, true },
+    [0x85] = {IT_STA,  AM_ZEROPAGE,    3, true }, // manually tested
     [0x86] = {IT_STX,  AM_ZEROPAGE,    3, true },
     [0x87] = {IT_SAX,  AM_ZEROPAGE,    3, true }, // Illegal
     [0x88] = {IT_DEY,  AM_IMPLIED,     2, true },
     [0x89] = {IT_NOP,  AM_IMMEDIATE,   2, true },
-    [0x8A] = {IT_TXA,  AM_IMPLIED,     2, true }, // Illegal
+    [0x8A] = {IT_TXA,  AM_IMPLIED,     2, true }, // manually tested
     [0x8B] = {IT_ANE,  AM_IMMEDIATE,   2, true }, // Illegal
-    [0x8C] = {IT_STY,  AM_ABSOLUTE,    4, true }, // Illegal
+    [0x8C] = {IT_STY,  AM_ABSOLUTE,    4, true }, // manually tested
     [0x8D] = {IT_STA,  AM_ABSOLUTE,    4, true },
-    [0x8E] = {IT_STX,  AM_ABSOLUTE,    4, true },
+    [0x8E] = {IT_STX,  AM_ABSOLUTE,    4, true }, // manually tested
     [0x8F] = {IT_SAX,  AM_ABSOLUTE,    4, true }, // Illegal
 
-    [0x90] = {IT_BCC,  AM_RELATIVE,    2, false},
+    [0x90] = {IT_BCC,  AM_RELATIVE,    2, true },
     [0x91] = {IT_STA,  AM_INDIRECT_Y,  6, true },
     [0x92] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0x93] = {IT_SHA,  AM_INDIRECT_Y,  6, true }, // Illegal
@@ -329,23 +329,23 @@ const Instruction instructions[256] = {
     [0x97] = {IT_SAX,  AM_ZEROPAGE_Y,  4, true }, // Illegal
     [0x98] = {IT_TYA,  AM_IMPLIED,     2, true },
     [0x99] = {IT_STA,  AM_ABSOLUTE_Y,  5, true },
-    [0x9A] = {IT_TXS,  AM_IMPLIED,     2, true },
+    [0x9A] = {IT_TXS,  AM_IMPLIED,     2, true }, // manually tested
     [0x9B] = {IT_TAS,  AM_ABSOLUTE_Y,  5, true }, // Illegal
     [0x9C] = {IT_SHY,  AM_ABSOLUTE_X,  5, true }, // Illegal
     [0x9D] = {IT_STA,  AM_ABSOLUTE_X,  5, true },
     [0x9E] = {IT_SHX,  AM_ABSOLUTE_Y,  5, true }, // Illegal
     [0x9F] = {IT_SHA,  AM_ABSOLUTE_Y,  5, true }, // Illegal
 
-    [0xA0] = {IT_LDY,  AM_IMMEDIATE,   2, true },
-    [0xA1] = {IT_LDA,  AM_INDIRECT_X,  6, true },
-    [0xA2] = {IT_LDX,  AM_IMMEDIATE,   2, true },
+    [0xA0] = {IT_LDY,  AM_IMMEDIATE,   2, true }, // manually tested
+    [0xA1] = {IT_LDA,  AM_INDIRECT_X,  6, true }, // manually tested
+    [0xA2] = {IT_LDX,  AM_IMMEDIATE,   2, true }, // manually tested
     [0xA3] = {IT_LAX,  AM_INDIRECT_X,  6, true }, // Illegal
     [0xA4] = {IT_LDY,  AM_ZEROPAGE,    3, true },
     [0xA5] = {IT_LDA,  AM_ZEROPAGE,    3, true },
     [0xA6] = {IT_LDX,  AM_ZEROPAGE,    3, true },
     [0xA7] = {IT_LAX,  AM_ZEROPAGE,    3, true }, // Illegal
     [0xA8] = {IT_TAY,  AM_IMPLIED,     2, true },
-    [0xA9] = {IT_LDA,  AM_IMMEDIATE,   2, true },
+    [0xA9] = {IT_LDA,  AM_IMMEDIATE,   2, true }, // manually tested
     [0xAA] = {IT_TAX,  AM_IMPLIED,     2, true },
     [0xAB] = {IT_LXA,  AM_IMMEDIATE,   2, true }, // Illegal
     [0xAC] = {IT_LDY,  AM_ABSOLUTE,    4, true },
@@ -353,8 +353,8 @@ const Instruction instructions[256] = {
     [0xAE] = {IT_LDX,  AM_ABSOLUTE,    4, true },
     [0xAF] = {IT_LAX,  AM_ABSOLUTE,    4, true }, // Illegal
 
-    [0xB0] = {IT_BCS,  AM_RELATIVE,    2, false},
-    [0xB1] = {IT_LDA,  AM_INDIRECT_Y,  5, true },
+    [0xB0] = {IT_BCS,  AM_RELATIVE,    2, true },
+    [0xB1] = {IT_LDA,  AM_INDIRECT_Y,  5, true }, // manually tested
     [0xB2] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0xB3] = {IT_LAX,  AM_INDIRECT_Y,  5, true }, // Illegal
     [0xB4] = {IT_LDY,  AM_INDIRECT_X,  4, true },
@@ -370,7 +370,7 @@ const Instruction instructions[256] = {
     [0xBE] = {IT_LDX,  AM_ABSOLUTE_Y,  4, true },
     [0xBF] = {IT_LAX,  AM_ABSOLUTE_Y,  4, true }, // Illegal
 
-    [0xC0] = {IT_CPY,  AM_IMMEDIATE,   2, true },
+    [0xC0] = {IT_CPY,  AM_IMMEDIATE,   2, true }, // manually tested
     [0xC1] = {IT_CMP,  AM_INDIRECT_X,  6, true },
     [0xC2] = {IT_NOP,  AM_IMMEDIATE,   2, true }, // Illegal
     [0xC3] = {IT_DCP,  AM_INDIRECT_X,  8, true }, // Illegal
@@ -378,8 +378,8 @@ const Instruction instructions[256] = {
     [0xC5] = {IT_CMP,  AM_ZEROPAGE,    3, true },
     [0xC6] = {IT_DEC,  AM_ZEROPAGE,    5, true },
     [0xC7] = {IT_DCP,  AM_ZEROPAGE,    5, true }, // Illegal
-    [0xC8] = {IT_INY,  AM_IMPLIED,     2, true },
-    [0xC9] = {IT_CMP,  AM_IMMEDIATE,   2, true },
+    [0xC8] = {IT_INY,  AM_IMPLIED,     2, true }, // manually tested
+    [0xC9] = {IT_CMP,  AM_IMMEDIATE,   2, true }, // manually tested
     [0xCA] = {IT_DEX,  AM_IMPLIED,     2, true },
     [0xCB] = {IT_SBX,  AM_IMMEDIATE,   2, true }, // Illegal
     [0xCC] = {IT_CPY,  AM_ABSOLUTE,    4, true },
@@ -387,7 +387,7 @@ const Instruction instructions[256] = {
     [0xCE] = {IT_DEC,  AM_ABSOLUTE,    6, true },
     [0xCF] = {IT_DCP,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0xD0] = {IT_BNE,  AM_RELATIVE,    2, false},
+    [0xD0] = {IT_BNE,  AM_RELATIVE,    2, true }, // manually tested
     [0xD1] = {IT_CMP,  AM_INDIRECT_Y,  5, true },
     [0xD2] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0xD3] = {IT_DCP,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -412,16 +412,16 @@ const Instruction instructions[256] = {
     [0xE5] = {IT_SBC,  AM_ZEROPAGE,    3, true },
     [0xE6] = {IT_INC,  AM_ZEROPAGE,    5, true },
     [0xE7] = {IT_ISC,  AM_ZEROPAGE,    5, true }, // Illegal
-    [0xE8] = {IT_INX,  AM_IMPLIED,     2, true },
+    [0xE8] = {IT_INX,  AM_IMPLIED,     2, true }, // manually tested
     [0xE9] = {IT_SBC,  AM_IMMEDIATE,   2, true },
-    [0xEA] = {IT_NOP,  AM_IMPLIED,     2, true },
+    [0xEA] = {IT_NOP,  AM_IMPLIED,     2, true }, // manually tested
     [0xEB] = {IT_USBC, AM_IMPLIED,     2, true }, // Illegal
     [0xEC] = {IT_CPX,  AM_ABSOLUTE,    4, true },
     [0xED] = {IT_SBC,  AM_ABSOLUTE,    4, true },
     [0xEE] = {IT_INC,  AM_ABSOLUTE,    6, true },
     [0xEF] = {IT_ISC,  AM_ABSOLUTE,    6, true }, // Illegal
 
-    [0xF0] = {IT_BEQ,  AM_RELATIVE,    2, false},
+    [0xF0] = {IT_BEQ,  AM_RELATIVE,    2, true },
     [0xF1] = {IT_SBC,  AM_INDIRECT_Y,  5, true },
     [0xF2] = {IT_JAM,  AM_IMPLIED,     2, false}, // Illegal
     [0xF3] = {IT_ISC,  AM_INDIRECT_Y,  8, true }, // Illegal
@@ -564,10 +564,14 @@ void cpu_execute(Cpu *cpu)
     uint8_t inst_code = mem_read(cpu->mem, cpu->PC);
     Instruction instruction = instructions[inst_code];
     printf("Executing %s\n", cpu_inst_names[instruction.type]);
+
     size_t inst_size = addressings[instruction.address_mode].size;
     uint16_t data = mem_read16(cpu->mem, cpu->PC + 1);
+    if (instruction.increment_pc)
+    {
+        cpu->PC += inst_size;
+    }
     inst_funcs[instruction.type](cpu, addressings[instruction.address_mode], data);
-    cpu->PC += inst_size;
     cpu_print(cpu);
 }
 
@@ -669,7 +673,8 @@ void cpu_store_absolute_y(Cpu *cpu, uint16_t operand, uint8_t value)
 
 void cpu_store_accumulator(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    UNUSED3(cpu, operand, value);
+    UNUSED(operand);
+    cpu->A = value;
 }
 
 void cpu_store_immediate(Cpu *cpu, uint16_t operand, uint8_t value)
@@ -684,7 +689,7 @@ void cpu_store_implied(Cpu *cpu, uint16_t operand, uint8_t value)
 
 void cpu_store_indirect(Cpu *cpu, uint16_t operand, uint8_t value)
 {
-    uint16_t address = cpu_address_indirect(cpu, operand);
+    uint8_t address = cpu_address_indirect(cpu, operand);
     mem_write(cpu->mem, address, value);
 }
 
@@ -765,13 +770,13 @@ uint16_t cpu_address_indirect(Cpu *cpu, uint16_t operand)
 
 uint16_t cpu_address_indirect_x(Cpu *cpu, uint16_t operand)
 {
-    uint8_t address_to_address = operand + cpu->X;
-    return u16_lo(mem_read16(cpu->mem, address_to_address));
+    uint8_t address_to_address = u16_lo(operand + cpu->X);
+    return mem_read16(cpu->mem, address_to_address);
 }
 
 uint16_t cpu_address_indirect_y(Cpu *cpu, uint16_t operand)
 {
-    return u16_lo(mem_read16(cpu->mem, operand)) + cpu->Y;
+    return mem_read16(cpu->mem, operand) + cpu->Y;
 }
 
 uint16_t cpu_address_relative(Cpu *cpu, uint16_t operand)
@@ -883,7 +888,9 @@ void cpu_and(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_asl(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     size_t a = addressing.load(cpu, operand);
+    cpu->C = a & (1 << 7);
     a = a << 1;
+    addressing.store(cpu, operand, a);
 }
 
 void cpu_bcc(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -1061,7 +1068,7 @@ void cpu_jmp(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_jsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu_push16(cpu, cpu->PC);
+    cpu_push16(cpu, cpu->PC - 1);
     cpu->PC = addressing.address(cpu, operand);
 }
 
@@ -1155,7 +1162,7 @@ void cpu_rti(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_rts(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
-    uint16_t address = cpu_pull16(cpu);
+    uint16_t address = cpu_pull16(cpu) + 1;
     cpu->PC = address;
 }
 
