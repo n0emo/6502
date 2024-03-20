@@ -2,6 +2,8 @@
 #include "int.h"
 #include <stdio.h>
 
+// TODO: fix transfer and decrement instructions
+
 const Addressing addressings[] = {
     [AM_ABSOLUTE] = {
                      cpu_load_absolute,
@@ -523,14 +525,19 @@ const char *const cpu_inst_names[] = {
 
 void cpu_print(Cpu *cpu)
 {
+#if 1
+    Instruction inst = instructions[mem_read(cpu->mem, cpu->PC)];
     printf(
+        "Instruction: %s\n"
         "PC=0x%.4x, SP=0x%.2x\n"
         "AC=0x%.2x, X=0x%.2x, Y=0x%.2x\n"
         "NV-BDIZC\n"
         "%d%d%d%d%d%d%d%d\n\n",
+        cpu_inst_names[inst.type],
         cpu->PC, cpu->SP,
         cpu->A, cpu->X, cpu->Y,
         cpu->N, cpu->V, cpu->U, cpu->B, cpu->D, cpu->I, cpu->Z, cpu->C);
+#endif
 }
 
 void cpu_init(Cpu *cpu, Memory *mem)
@@ -563,7 +570,6 @@ void cpu_execute(Cpu *cpu)
 {
     uint8_t inst_code = mem_read(cpu->mem, cpu->PC);
     Instruction instruction = instructions[inst_code];
-    printf("Executing %s\n", cpu_inst_names[instruction.type]);
 
     size_t inst_size = addressings[instruction.address_mode].size;
     uint16_t data = mem_read16(cpu->mem, cpu->PC + 1);

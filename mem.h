@@ -22,6 +22,7 @@ typedef struct
 
 void mem_append(Memory *mem, Device dev);
 
+void mem_init(Memory *mem);
 uint8_t mem_read(Memory *mem, uint16_t address);
 uint16_t mem_read16(Memory *mem, uint16_t address);
 void mem_write(Memory *mem, uint16_t address, uint8_t value);

@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -pedantic -g
 INCLUDES = .
 
 mos6502: cpu.o mem.o main.o int.o
-	$(CC) $(CFLAGS) cpu.o mem.o int.o main.o -o mos6502
+	$(CC) $(CFLAGS) cpu.o mem.o int.o main.o -o mos6502 -lraylib
 
 cpu.o: cpu.c
 	$(CC) $(CFLAGS) -c cpu.c

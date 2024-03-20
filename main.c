@@ -1,142 +1,82 @@
 #include "cpu.h"
 #include "mem.h"
+#include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int main()
 {
+    Color colors[] = {
+        GetColor(0x000000FF),
+        GetColor(0xffffffFF),
+        GetColor(0x880000FF),
+        GetColor(0xaaffeeFF),
+        GetColor(0xcc44ccFF),
+        GetColor(0x00cc55FF),
+        GetColor(0x0000aaFF),
+        GetColor(0xeeee77FF),
+        GetColor(0xdd8855FF),
+        GetColor(0x664400FF),
+        GetColor(0xff7777FF),
+        GetColor(0x333333FF),
+        GetColor(0x777777FF),
+        GetColor(0xaaff66FF),
+        GetColor(0x0088ffFF),
+        GetColor(0xbbbbbbFF),
+    };
+
     Cpu cpu = {0};
     Memory mem = {0};
 
+    mem_init(&mem);
     cpu_init(&cpu, &mem);
 
-    // NES Memory map
-
-    // Internal RAM
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(0x0800, 1),
-                   .begin_address = 0,
-                   .end_address = 0x07FF,
-                   .readonly = false,
-               });
-
-    // PPU
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(0x2000, 1),
-                   .begin_address = 0x2000,
-                   .end_address = 0x3FFF,
-                   .readonly = false,
-               });
-
-    // APU
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(0x2000, 1),
-                   .begin_address = 0x4000,
-                   .end_address = 0x5FFF,
-                   .readonly = false,
-               });
-
-    // Cartridge RAM
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(0x2000, 1),
-                   .begin_address = 0x6000,
-                   .end_address = 0x7FFF,
-                   .readonly = false,
-               });
-
-    // ROM
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(0x8000, 1),
-                   .begin_address = 0x8000,
-                   .end_address = 0xFFFA,
-                   .readonly = true,
-               });
-
-    // Vectors
-    mem_append(&mem,
-               (Device){
-                   .data = calloc(6, 1),
-                   .begin_address = 0xFFFA,
-                   .end_address = 0xFFFF,
-                   .readonly = true,
-               });
-
-    mem_write_force(&mem, 0xFFFC, 0x80);
-    mem_write_force(&mem, 0xFFFD, 0x00);
-
-    uint8_t init[] = {
-        // Init stack
-        0xa2, // LDX
-        0xff, // #$ff
-
-        0x9a, // TXS
-
-        // Init CPU
-        0xa9, // LDA
-        0x00, // #$00
-
-        0xa2, // LDX
-        0x00, // #$00
-
-        0xc9, // CMP
-        0xff, // #$ff
-
-        0x4c, // JMP
-        0x00, // $0600
-        0x06,
-    };
-
-    uint8_t example[] = {
-        0x20,
-        0x09,
-        0x06,
-        0x20,
-        0x0f,
-        0x06,
-        0x20,
-        0x15,
-        0x06,
-        0xac,
-        0xfe,
-        0x01,
-        0xa2,
-        0x00,
-        0x60,
-        0xe8,
-        0xe0,
-        0x05,
-        0xd0,
-        0xfb,
-        0x60,
-        0x00,
-    };
-
-    for (size_t i = 0; i < sizeof(example) / sizeof(example[0]); i++)
-    {
-        mem_write_force(&mem, 0x0600 + i, example[i]);
-    }
-
-    for (size_t i = 0; i < sizeof(init) / sizeof(init[0]); i++)
-    {
-        mem_write_force(&mem, 0x8000 + i, init[i]);
-    }
-
     cpu_reset(&cpu);
-    printf("Initial state:\n");
-    cpu_print(&cpu);
-
     cpu.B = 1;
-    size_t limit = 999;
-    while (cpu.B && limit)
+
+    Device main_dev = mem.devices[0];
+    size_t width = 32;
+    size_t height = 32;
+
+    srand(time(NULL));
+
+    InitWindow(640, 640, "6502");
+    SetTargetFPS(60);
+
+    RenderTexture screen = LoadRenderTexture(width, height);
+
+    while (!WindowShouldClose())
     {
-        cpu_execute(&cpu);
-        limit--;
+        size_t limit = 40;
+        while (cpu.B && limit)
+        {
+            mem_write(&mem, 0x00ff, GetKeyPressed() % 256);
+            mem_write(&mem, 0x00fe, rand() % 256);
+            cpu_execute(&cpu);
+            BeginTextureMode(screen);
+            for (size_t row = 0; row < height; row++)
+            {
+                for (size_t col = 0; col < width; col++)
+                {
+                    size_t index = height * (width - col - 1) + row;
+                    uint8_t color_value = mem_read(&mem, 0x0200 + index);
+                    Color color = colors[color_value];
+                    DrawPixel(row, col, color);
+                }
+            }
+            limit--;
+        }
+
+        EndTextureMode();
+
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawTextureEx(screen.texture, (Vector2){0, 0}, 0, 20, WHITE);
+        EndDrawing();
     }
+
+    CloseWindow();
 
     return 0;
 }
