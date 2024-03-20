@@ -525,7 +525,7 @@ const char *const cpu_inst_names[] = {
 
 void cpu_print(Cpu *cpu)
 {
-#if 1
+#if 0
     Instruction inst = instructions[mem_read(cpu->mem, cpu->PC)];
     printf(
         "Instruction: %s\n"
@@ -897,6 +897,7 @@ void cpu_asl(Cpu *cpu, Addressing addressing, uint16_t operand)
     cpu->C = a & (1 << 7);
     a = a << 1;
     addressing.store(cpu, operand, a);
+    cpu_set_zn(cpu, a);
 }
 
 void cpu_bcc(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -926,7 +927,8 @@ void cpu_beq(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_bit(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t result = cpu->A & addressing.load(cpu, operand);
-    cpu_set_zn(cpu, result);
+    cpu_set_z(cpu, result);
+    cpu->Z = result & (1 << 7);
     cpu->V = result & (1 << 6);
 }
 
@@ -1000,23 +1002,27 @@ void cpu_clv(Cpu *cpu, Addressing addressing, uint16_t operand)
     cpu->V = 0;
 }
 
+// TODO: cpu_compare
 void cpu_cmp(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = cpu->A, b = addressing.load(cpu, operand);
-    cpu_set_zn(cpu, a - b);
-    cpu->C = a > b;
+    uint8_t a = cpu->A;
+    uint8_t m = addressing.load(cpu, operand);
+    cpu_set_zn(cpu, a - m);
+    cpu->C = a > m;
 }
 
 void cpu_cpx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = cpu->X, b = addressing.load(cpu, operand);
-    cpu_set_zn(cpu, a - b);
-    cpu->C = a > b;
+    uint8_t a = cpu->X;
+    uint8_t m = addressing.load(cpu, operand);
+    cpu_set_zn(cpu, a - m);
+    cpu->C = a > m;
 }
 
 void cpu_cpy(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = cpu->Y, b = addressing.load(cpu, operand);
+    uint8_t a = cpu->Y;
+    uint8_t b = addressing.load(cpu, operand);
     cpu_set_zn(cpu, a - b);
     cpu->C = a > b;
 }
@@ -1026,31 +1032,36 @@ void cpu_dec(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t a = addressing.load(cpu, operand);
     a--;
     addressing.store(cpu, operand, a);
+    cpu_set_zn(cpu, a);
 }
 
 void cpu_dex(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
     cpu->X--;
+    cpu_set_zn(cpu, cpu->X);
 }
 
 void cpu_dey(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
     cpu->Y--;
+    cpu_set_zn(cpu, cpu->Y);
 }
 
 void cpu_eor(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->A = cpu->A ^ addressing.load(cpu, operand);
+    uint8_t m = addressing.load(cpu, operand);
+    cpu->A ^= m;
     cpu_set_zn(cpu, cpu->A);
 }
 
 void cpu_inc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    UNUSED2(addressing, operand);
-    cpu->A++;
-    cpu_set_zn(cpu, cpu->A);
+    uint8_t m = addressing.load(cpu, operand);
+    m--;
+    addressing.store(cpu, operand, m);
+    cpu_set_zn(cpu, m);
 }
 
 void cpu_inx(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -1098,11 +1109,11 @@ void cpu_ldy(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_lsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = addressing.load(cpu, operand);
-    cpu->C = a & 1;
-    a = a >> 1;
-    cpu_set_zn(cpu, a);
-    addressing.store(cpu, operand, a);
+    uint8_t m = addressing.load(cpu, operand);
+    cpu->C = m & 1;
+    m = (m >> 1) | (cpu->C << 7);
+    cpu_set_zn(cpu, m);
+    addressing.store(cpu, operand, m);
 }
 
 void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -1112,7 +1123,8 @@ void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_ora(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    cpu->A = cpu->A | addressing.load(cpu, operand);
+    uint8_t m = addressing.load(cpu, operand);
+    cpu->A |= m;
     cpu_set_zn(cpu, cpu->A);
 }
 
@@ -1142,20 +1154,20 @@ void cpu_plp(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_rol(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = addressing.load(cpu, operand);
-    cpu->C = a & (1 << 7);
-    a = (a << 1) | cpu->C;
-    addressing.store(cpu, operand, a);
-    cpu_set_zn(cpu, a);
+    uint8_t m = addressing.load(cpu, operand);
+    cpu->C = m & (1 << 7);
+    m = (m << 1) | cpu->C;
+    addressing.store(cpu, operand, m);
+    cpu_set_zn(cpu, m);
 }
 
 void cpu_ror(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = addressing.load(cpu, operand);
-    cpu->C = a & 1;
-    a = (a >> 1) | (cpu->C << 7);
-    addressing.store(cpu, operand, a);
-    cpu_set_zn(cpu, a);
+    uint8_t m = addressing.load(cpu, operand);
+    cpu->C = m & 1;
+    m = (m >> 1) | (cpu->C << 7);
+    addressing.store(cpu, operand, m);
+    cpu_set_zn(cpu, m);
 }
 
 void cpu_rti(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -1172,14 +1184,15 @@ void cpu_rts(Cpu *cpu, Addressing addressing, uint16_t operand)
     cpu->PC = address;
 }
 
+// TODO: decimal mode
 void cpu_sbc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t a = cpu->A;
-    uint8_t b = addressing.load(cpu, operand);
+    uint8_t m = addressing.load(cpu, operand);
     uint8_t c = cpu->C;
-    cpu->A = a - b - !c;
-    cpu->C = a < b + !c;
-    cpu->V = (u8sign(a) == u8sign(b) && u8sign(cpu->A) != u8sign(b));
+    cpu->A = a - m - !c;
+    cpu->C = a < m + !c;
+    cpu->V = (u8sign(a) == u8sign(m) && u8sign(cpu->A) != u8sign(m));
     cpu_set_zn(cpu, a);
 }
 
@@ -1234,6 +1247,7 @@ void cpu_tsx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
     cpu->X = cpu->SP;
+    cpu_set_zn(cpu, cpu->SP);
 }
 
 void cpu_txa(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -1254,4 +1268,5 @@ void cpu_txs(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
     cpu->SP = cpu->X;
+    cpu_set_zn(cpu, cpu->X);
 }

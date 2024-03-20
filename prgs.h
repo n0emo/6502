@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define prog snake
+#define prog example
 
 static uint8_t example[] = {
     0xa2,

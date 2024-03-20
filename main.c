@@ -42,35 +42,35 @@ int main()
     srand(time(NULL));
 
     InitWindow(640, 640, "6502");
-    SetTargetFPS(60);
+    // SetTargetFPS(6000);
 
     RenderTexture screen = LoadRenderTexture(width, height);
 
     while (!WindowShouldClose())
     {
-        size_t limit = 40;
-        while (cpu.B && limit)
+        BeginDrawing();
+        if (cpu.B)
         {
             mem_write(&mem, 0x00ff, GetKeyPressed() % 256);
             mem_write(&mem, 0x00fe, rand() % 256);
             cpu_execute(&cpu);
-            BeginTextureMode(screen);
             for (size_t row = 0; row < height; row++)
             {
                 for (size_t col = 0; col < width; col++)
                 {
                     size_t index = height * (width - col - 1) + row;
-                    uint8_t color_value = mem_read(&mem, 0x0200 + index);
+                    uint8_t color_value = mem_read(&mem, 0x0200 + index) % 16;
                     Color color = colors[color_value];
+                    BeginTextureMode(screen);
                     DrawPixel(row, col, color);
+                    EndTextureMode();
                 }
             }
-            limit--;
         }
-
-        EndTextureMode();
-
-        BeginDrawing();
+        else
+        {
+            printf("End\n");
+        }
         ClearBackground(BLACK);
         DrawTextureEx(screen.texture, (Vector2){0, 0}, 0, 20, WHITE);
         EndDrawing();
