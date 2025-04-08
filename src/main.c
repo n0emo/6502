@@ -1,9 +1,14 @@
-#include "cpu.h"
-#include "mem.h"
-#include <raylib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include <raylib.h>
+
+#include "cpu.h"
+#include "instructions.h"
+#include "mem.h"
+
+#define WITH_DEBUG_OVERLAY
 
 int main()
 {
@@ -42,14 +47,36 @@ int main()
     srand(time(NULL));
 
     InitWindow(640, 640, "6502");
+
+    Font font = LoadFontEx("./assets/Courier Prime Code.ttf", 20, 0, 0);
     // SetTargetFPS(6000);
 
     RenderTexture screen = LoadRenderTexture(width, height);
 
+#ifdef WITH_DEBUG_OVERLAY
+    bool debug_overlay = true;
+    bool debug_continue = false;
+#endif
+
     while (!WindowShouldClose())
     {
+        bool do_execute = true;
+#ifdef WITH_DEBUG_OVERLAY
+        if (IsKeyPressed(KEY_F5))
+        {
+            debug_overlay = !debug_overlay;
+        }
+
+        if (IsKeyPressed(KEY_F6))
+        {
+            debug_continue = !debug_continue;
+        }
+
+        do_execute = IsKeyPressed(KEY_F7) || debug_continue;
+#endif
+
         BeginDrawing();
-        if (cpu.B)
+        if (cpu.B && do_execute)
         {
             mem_write(&mem, 0x00ff, GetKeyPressed() % 256);
             mem_write(&mem, 0x00fe, rand() % 256);
@@ -70,6 +97,58 @@ int main()
 
         ClearBackground(BLACK);
         DrawTextureEx(screen.texture, (Vector2){0, 0}, 0, 20, WHITE);
+
+#ifdef WITH_DEBUG_OVERLAY
+        if (debug_overlay)
+        {
+            const int font_size = 20;
+            Color overlay_color = GetColor(0xFFFFFFAA);
+
+            DrawTextEx(font, "Debug overlay", (Vector2) { 10, 10 }, font_size, 0, overlay_color);
+
+            const int cpu_width = 280;
+            const int cpu_height = 130;
+            Rectangle cpu_bounds = {
+                .x = GetScreenWidth() - cpu_width - 20,
+                .y = GetScreenHeight() - cpu_height - 20,
+                .width = cpu_width,
+                .height = cpu_height,
+            };
+
+            DrawRectangleRec(cpu_bounds, GetColor(0xFFFFFF22));
+            DrawRectangleLinesEx(cpu_bounds, 1.0f, overlay_color);
+
+            Instruction inst = get_instruction_by_opcode(mem_read(cpu.mem, cpu.PC));
+            char buf[1024];
+            snprintf(
+                buf,
+                sizeof(buf),
+                "Instruction: %s\n"
+                "PC=0x%.4x, SP=0x%.2x\n"
+                "AC=0x%.2x, X=0x%.2x, Y=0x%.2x\n"
+                "NV-BDIZC\n"
+                "%d%d%d%d%d%d%d%d\n\n",
+                cpu_inst_name(inst.type),
+                cpu.PC, cpu.SP,
+                cpu.A, cpu.X, cpu.Y,
+                cpu.N, cpu.V, cpu.U, cpu.B, cpu.D, cpu.I, cpu.Z, cpu.C);
+
+            Vector2 pos = { cpu_bounds.x + 10, cpu_bounds.y + 10 };
+            DrawTextEx(font, buf, pos, font_size, 0, overlay_color);
+
+            DrawTextEx(
+                font,
+                "F5 - Overlay\n"
+                "F6 - Continue\n"
+                "F7 - Step\n",
+                (Vector2) { GetScreenWidth() - 160, 10 },
+                font_size,
+                0,
+                overlay_color
+            );
+        }
+#endif
+
         EndDrawing();
     }
 
