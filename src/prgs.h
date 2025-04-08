@@ -5,32 +5,40 @@
 
 #define prog example
 
+// clang-format off
+// Address  Hexdump   Dissassembly
+// -------------------------------
 static uint8_t example[] = {
-    0xa2,
-    0x00,
-    0xa0,
-    0x00,
+    // $0600    a2 00     LDX #$00
+    0xa2, 0x00,
+    // $0602    a0 00     LDY #$00
+    0xa0, 0x00,
+    // $0604    8a        TXA
     0x8a,
-    0x99,
-    0x00,
-    0x02,
+    // $0605    99 00 02  STA $0200,Y
+    0x99, 0x00, 0x02,
+    // $0608    48        PHA
     0x48,
+    // $0609    e8        INX
     0xe8,
+    // $060a    c8        INY
     0xc8,
-    0xc0,
-    0x10,
-    0xd0,
-    0xf5,
+    // $060b    c0 10     CPY #$10
+    0xc0, 0x10,
+    // $060d    d0 f5     BNE $0604
+    0xd0, 0xf5,
+    // $060f    68        PLA
     0x68,
-    0x99,
-    0x00,
-    0x03,
+    // $0610    99 00 02  STA $0200,Y
+    0x99, 0x00, 0x02,
+    // $0613    c8        INY
     0xc8,
-    0xc0,
-    0x20,
-    0xd0,
-    0xf7,
+    // $0614    c0 20     CPY #$20
+    0xc0, 0x20,
+    // $0616    d0 f7     BNE $060f
+    0xd0, 0xf7,
 };
+// clang-format on
 
 static uint8_t example_2[] = {
     0xa9,

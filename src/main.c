@@ -67,10 +67,7 @@ int main()
                 }
             }
         }
-        else
-        {
-            printf("End\n");
-        }
+
         ClearBackground(BLACK);
         DrawTextureEx(screen.texture, (Vector2){0, 0}, 0, 20, WHITE);
         EndDrawing();

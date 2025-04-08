@@ -2,10 +2,14 @@ cmake_minimum_required(VERSION 3.1)
 
 project(mos6502)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_subdirectory(./lib/raylib)
 
 add_executable(mos6502
+    ./src/addressing.c
     ./src/cpu.c
+    ./src/instructions.c
     ./src/int.c
     ./src/main.c
     ./src/mem.c
