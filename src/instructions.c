@@ -3,17 +3,17 @@
 #include <stddef.h>
 
 #include "cpu.h"
-#include "int.h"
 
 void cpu_adc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t a = cpu->A;
-    uint8_t b = addressing.load(cpu, operand);
-    bool c = cpu->C;
-    cpu->A = a + b + c;
+    uint8_t m = addressing.load(cpu, operand);
+    uint8_t c = cpu->C;
+    cpu->A = a + m + c;
     cpu_set_zn(cpu, cpu->A);
-    cpu->C = a + b + c > 0xFF;
-    cpu->V = (u8sign(a) == u8sign(b) && u8sign(cpu->A) != u8sign(b));
+    cpu->C = (int32_t) a + (int32_t) m + (int32_t) c > 0xFF;
+    // cpu->V = u8sign(a ^ m) && u8sign(a ^ cpu->A);
+    cpu->V = ((a ^ cpu->A) & (m ^ cpu->A) & 0x80) != 0;
 }
 
 // TODO: cpu_alr
@@ -80,7 +80,7 @@ void cpu_bcs(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_beq(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    if (cpu->Z == 1)
+    if (cpu->Z != 0)
     {
         cpu->PC = addressing.address(cpu, operand);
     }
@@ -88,10 +88,10 @@ void cpu_beq(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_bit(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t result = cpu->A & addressing.load(cpu, operand);
-    cpu_set_z(cpu, result);
-    cpu->Z = result & (1 << 7);
-    cpu->V = result & (1 << 6);
+    uint8_t value = addressing.load(cpu, operand);
+    cpu->V = (value >> 6) & 1;
+    cpu_set_z(cpu, value & cpu->A);
+    cpu_set_n(cpu, value);
 }
 
 void cpu_bmi(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -170,7 +170,7 @@ void cpu_cmp(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t a = cpu->A;
     uint8_t m = addressing.load(cpu, operand);
     cpu_set_zn(cpu, a - m);
-    cpu->C = a > m;
+    cpu->C = a >= m;
 }
 
 void cpu_cpx(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -178,7 +178,7 @@ void cpu_cpx(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t a = cpu->X;
     uint8_t m = addressing.load(cpu, operand);
     cpu_set_zn(cpu, a - m);
-    cpu->C = a > m;
+    cpu->C = a >= m;
 }
 
 void cpu_cpy(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -186,7 +186,7 @@ void cpu_cpy(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t a = cpu->Y;
     uint8_t b = addressing.load(cpu, operand);
     cpu_set_zn(cpu, a - b);
-    cpu->C = a > b;
+    cpu->C = a >= b;
 }
 
 // TODO: cpu_dcp
@@ -197,10 +197,10 @@ void cpu_dcp(Cpu *cpu, Addressing addressing, uint16_t operand)
 
 void cpu_dec(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
-    uint8_t a = addressing.load(cpu, operand);
-    a--;
-    addressing.store(cpu, operand, a);
-    cpu_set_zn(cpu, a);
+    uint8_t m = addressing.load(cpu, operand);
+    m--;
+    addressing.store(cpu, operand, m);
+    cpu_set_zn(cpu, m);
 }
 
 void cpu_dex(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -233,7 +233,7 @@ void cpu_ign(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_inc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t m = addressing.load(cpu, operand);
-    m--;
+    m++;
     addressing.store(cpu, operand, m);
     cpu_set_zn(cpu, m);
 }
@@ -303,7 +303,7 @@ void cpu_lsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t m = addressing.load(cpu, operand);
     cpu->C = m & 1;
-    m = (m >> 1) | (cpu->C << 7);
+    m = (m >> 1);
     cpu_set_zn(cpu, m);
     addressing.store(cpu, operand, m);
 }
@@ -359,8 +359,9 @@ void cpu_rla(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_rol(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t m = addressing.load(cpu, operand);
-    cpu->C = m & (1 << 7);
-    m = (m << 1) | cpu->C;
+    uint8_t old_carry = cpu->C;
+    cpu->C = (m >> 7) & 1;
+    m = (m << 1) | old_carry;
     addressing.store(cpu, operand, m);
     cpu_set_zn(cpu, m);
 }
@@ -368,8 +369,9 @@ void cpu_rol(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_ror(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     uint8_t m = addressing.load(cpu, operand);
+    uint8_t old_carry = cpu->C;
     cpu->C = m & 1;
-    m = (m >> 1) | (cpu->C << 7);
+    m = (m >> 1) | (old_carry << 7);
     addressing.store(cpu, operand, m);
     cpu_set_zn(cpu, m);
 }
@@ -406,10 +408,11 @@ void cpu_sbc(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t a = cpu->A;
     uint8_t m = addressing.load(cpu, operand);
     uint8_t c = cpu->C;
-    cpu->A = a - m - !c;
-    cpu->C = a < m + !c;
-    cpu->V = (u8sign(a) == u8sign(m) && u8sign(cpu->A) != u8sign(m));
-    cpu_set_zn(cpu, a);
+    cpu->A = a - m - (1 - c);
+    cpu->C = (int32_t) a - (int32_t) m - (int32_t) (1 - c) >= 0;
+    //cpu->V = u8sign(a ^ m) && u8sign(a ^ cpu->A);
+    cpu->V = ((a ^ cpu->A) & (m ^ cpu->A) & 0x80) != 0;
+    cpu_set_zn(cpu, cpu->A);
 }
 
 // TODO: cpu_sbx
@@ -532,7 +535,6 @@ void cpu_txs(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED2(addressing, operand);
     cpu->SP = cpu->X;
-    cpu_set_zn(cpu, cpu->X);
 }
 
 // TODO: cpu_usbc

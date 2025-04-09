@@ -1,5 +1,8 @@
+#include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include <raylib.h>
@@ -8,10 +11,119 @@
 #include "instructions.h"
 #include "mem.h"
 
+#define SHIFT(xs, xs_sz) (assert((xs_sz) > 0), (xs_sz)--, *(xs)++)
+
+typedef enum Subcommand
+{
+    SUBCOMMAND_HELP,
+    SUBCOMMAND_RUN,
+} Subcommand;
+
+typedef struct Args
+{
+    const char *executable;
+    Subcommand subcommand;
+    const char *run_program;
+} Args;
+
 const float clock_frequency = 1.5e4f;
 
-int main()
+const char *usage =
+    "Usage: %s <subcommand> [options]\n"
+    "Subcommands:\n"
+    "   help:        print this message\n"
+    "   run <path>:  run binary program\n";
+
+bool parse_args(int argc, const char **argv, Args *args)
 {
+    *args = (Args){0};
+    args->executable = SHIFT(argv, argc);
+    if (argc == 0)
+        return false;
+
+    const char *subcommand = SHIFT(argv, argc);
+
+    if (strcmp(subcommand, "help") == 0)
+    {
+        args->subcommand = SUBCOMMAND_HELP;
+        return true;
+    }
+
+    if (strcmp(subcommand, "run") == 0)
+    {
+        if (argc == 0)
+            return false;
+
+        args->subcommand = SUBCOMMAND_RUN;
+        args->run_program = SHIFT(argv, argc);
+        return true;
+    }
+
+    return false;
+}
+
+unsigned char *read_entire_file_binary(const char *path, uintptr_t *len)
+{
+    unsigned char *buf = NULL;
+
+    FILE *f = fopen(path, "rb");
+    if (f == NULL)
+    {
+        goto cleanup;
+    }
+
+    if (fseek(f, 0, SEEK_END) < 0)
+    {
+        goto cleanup;
+    }
+
+#ifndef _WIN32
+    long m = ftell(f);
+#else
+    long long m = _ftelli64(f);
+#endif
+
+    if (m < 0)
+    {
+        goto cleanup;
+    }
+
+    if (fseek(f, 0, SEEK_SET) < 0)
+    {
+        goto cleanup;
+    }
+
+    buf = malloc(m);
+    fread(buf, m, 1, f);
+    if (ferror(f))
+    {
+        free(buf);
+        buf = NULL;
+        goto cleanup;
+    }
+
+cleanup:
+    if (f)
+        fclose(f);
+
+    if (buf && len)
+    {
+        *len = m;
+    }
+
+    return buf;
+}
+
+void run_program(const char *path)
+{
+    uintptr_t len;
+    const unsigned char *program = read_entire_file_binary(path, &len);
+    if (program == NULL)
+    {
+        fprintf(stderr, "Error reading file: %s", strerror(errno));
+        exit(1);
+    }
+
     Color colors[] = {
         GetColor(0x000000FF),
         GetColor(0xffffffFF),
@@ -35,6 +147,11 @@ int main()
     Memory mem = {0};
 
     mem_init(&mem);
+    for (size_t i = 0; i < len; i++)
+    {
+        mem_write_force(&mem, 0x0600 + i, program[i]);
+    }
+
     cpu_init(&cpu, &mem);
 
     cpu_reset(&cpu);
@@ -69,7 +186,21 @@ int main()
             debug_continue = !debug_continue;
         }
 
-        do_execute = IsKeyPressed(KEY_F7) || debug_continue;
+        do_execute = IsKeyPressed(KEY_F7) || IsKeyPressedRepeat(KEY_F7) || debug_continue;
+
+        if (IsKeyPressed(KEY_F10))
+        {
+            for (uintptr_t i = 0; i <= 0x00ff; i += 16)
+            {
+                printf("0x%04zx:", i);
+                for (uintptr_t j = 0; j < 16; j++)
+                {
+                    printf(" %02hhx", mem_read(&mem, i + j));
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
 
         mem_write(&mem, 0x00fe, rand() % 256);
 
@@ -189,6 +320,26 @@ int main()
     }
 
     CloseWindow();
+}
+
+int main(int argc, const char **argv)
+{
+    Args args;
+    if (!parse_args(argc, argv, &args))
+    {
+        fprintf(stderr, usage, argv[0]);
+        return 1;
+    }
+
+    switch (args.subcommand)
+    {
+    case SUBCOMMAND_HELP:
+        printf(usage, args.executable);
+        break;
+    case SUBCOMMAND_RUN:
+        run_program(args.run_program);
+        break;
+    }
 
     return 0;
 }

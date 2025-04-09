@@ -6,5 +6,5 @@ configure:
 build:
     cmake --build build
 
-run: build
-    ./build/mos6502
+run *args: build
+    ./build/mos6502 {{args}}

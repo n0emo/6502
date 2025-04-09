@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include "int.h"
-#include "prgs.h"
 
 #define DEVICE_LIMIT 32
 #define len(x) sizeof(x) / sizeof(x[0])
@@ -58,11 +57,6 @@ void mem_init(Memory *mem)
         0x00, // $0600
         0x06,
     };
-
-    for (size_t i = 0; i < len(prog); i++)
-    {
-        mem_write_force(mem, 0x0600 + i, prog[i]);
-    }
 
     for (size_t i = 0; i < len(init); i++)
     {

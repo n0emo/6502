@@ -204,14 +204,18 @@ uint16_t cpu_address_indirect_x(Cpu *cpu, uint16_t operand)
 
 uint16_t cpu_address_indirect_y(Cpu *cpu, uint16_t operand)
 {
-    return mem_read16(cpu->mem, operand) + cpu->Y;
+    uint16_t addr = u16_lo(operand);
+    return mem_read16(cpu->mem, addr) + cpu->Y;
 }
 
 uint16_t cpu_address_relative(Cpu *cpu, uint16_t operand)
 {
-    uint8_t unsigned_offset = u16_lo(operand);
-    int8_t offset = *(int8_t *)&unsigned_offset;
-    return cpu->PC + offset;
+    uint16_t offset = u16_lo(operand);
+    if (offset < 0x80) {
+        return cpu->PC + offset;
+    } else {
+        return cpu->PC + offset - 0x100;
+    }
 }
 
 uint16_t cpu_address_zeropage(Cpu *cpu, uint16_t operand)

@@ -336,7 +336,7 @@ static inline Instruction get_instruction_by_opcode(uint8_t opcode)
         case 0xB1: return (Instruction) {IT_LDA,  AM_INDIRECT_Y,  5, true }; // manually tested
         case 0xB2: return (Instruction) {IT_JAM,  AM_IMPLIED,     2, false}; // Illegal
         case 0xB3: return (Instruction) {IT_LAX,  AM_INDIRECT_Y,  5, true }; // Illegal
-        case 0xB4: return (Instruction) {IT_LDY,  AM_INDIRECT_X,  4, true };
+        case 0xB4: return (Instruction) {IT_LDY,  AM_ZEROPAGE_X,  4, true };
         case 0xB5: return (Instruction) {IT_LDA,  AM_ZEROPAGE_X,  4, true };
         case 0xB6: return (Instruction) {IT_LDX,  AM_ZEROPAGE_Y,  4, true };
         case 0xB7: return (Instruction) {IT_LAX,  AM_ZEROPAGE_Y,  4, true }; // Illegal

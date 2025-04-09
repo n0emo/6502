@@ -85,8 +85,8 @@ uint8_t cpu_get_status(Cpu *cpu)
 {
     return cpu->N << 7 |
            cpu->V << 6 |
-           cpu->U << 5 |
-           cpu->B << 4 |
+                1 << 5 |
+                1 << 4 |
            cpu->D << 3 |
            cpu->I << 2 |
            cpu->Z << 1 |
