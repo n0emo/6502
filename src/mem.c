@@ -1,6 +1,7 @@
 #include "mem.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "int.h"
@@ -88,13 +89,14 @@ uint8_t mem_read(Memory *mem, uint16_t address)
     for (size_t i = 0; i < mem->dev_count; i++)
     {
         Device dev = mem->devices[i];
-        if (address >= dev.begin_address && address < dev.end_address)
+        if (address >= dev.begin_address && address <= dev.end_address)
         {
             return dev.data[address - dev.begin_address];
         }
     }
 
-    assert(0 && "No device mapped for address.");
+    fprintf(stderr,  "No device mapped for address: %hu.\n", address);
+    exit(1);
 }
 
 uint16_t mem_read16(Memory *mem, uint16_t address)

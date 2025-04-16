@@ -5,7 +5,6 @@
 #define CPU_RESET_VECTOR_2 0xFFFD
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 
 #include "mem.h"

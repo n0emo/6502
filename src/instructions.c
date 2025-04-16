@@ -1,7 +1,5 @@
 #include "instructions.h"
 
-#include <stddef.h>
-
 #include "cpu.h"
 
 void cpu_adc(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -20,12 +18,14 @@ void cpu_adc(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_alr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_anc
 void cpu_anc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_and(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -39,12 +39,14 @@ void cpu_and(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_ane(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_arr
 void cpu_arr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_asl(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -60,6 +62,7 @@ void cpu_asl(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_axs(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_bcc(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -193,6 +196,7 @@ void cpu_cpy(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_dcp(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_dec(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -228,6 +232,7 @@ void cpu_eor(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_ign(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_inc(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -256,12 +261,14 @@ void cpu_iny(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_isc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_jam
 void cpu_jam(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_jmp(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -279,6 +286,7 @@ void cpu_jsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_lax(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_lda(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -312,6 +320,7 @@ void cpu_lsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_lxa(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -354,6 +363,7 @@ void cpu_plp(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_rla(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_rol(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -380,6 +390,7 @@ void cpu_ror(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_rra(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_rti(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -400,6 +411,7 @@ void cpu_rts(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_sax(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: decimal mode
@@ -419,6 +431,7 @@ void cpu_sbc(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_sbx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_sec(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -443,36 +456,42 @@ void cpu_sei(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_sha(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_shx
 void cpu_shx(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_shy
 void cpu_shy(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_skb
 void cpu_skb(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_slo
 void cpu_slo(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 // TODO: cpu_sre
 void cpu_sre(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_sta(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -494,6 +513,7 @@ void cpu_sty(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_tas(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }
 
 void cpu_tax(Cpu *cpu, Addressing addressing, uint16_t operand)
@@ -541,4 +561,5 @@ void cpu_txs(Cpu *cpu, Addressing addressing, uint16_t operand)
 void cpu_usbc(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
     UNUSED3(cpu, addressing, operand);
+    abort();
 }

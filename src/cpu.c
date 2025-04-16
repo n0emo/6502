@@ -2,13 +2,12 @@
 #include "int.h"
 #include "instructions.h"
 
-#include <stdio.h>
-
 // TODO: fix transfer and decrement instructions
+
+#include <stdio.h>
 
 void cpu_print(Cpu *cpu)
 {
-#if 0
     Instruction inst = get_instruction_by_opcode(mem_read(cpu->mem, cpu->PC));
     printf(
         "Instruction: %s\n"
@@ -20,7 +19,6 @@ void cpu_print(Cpu *cpu)
         cpu->PC, cpu->SP,
         cpu->A, cpu->X, cpu->Y,
         cpu->N, cpu->V, cpu->U, cpu->B, cpu->D, cpu->I, cpu->Z, cpu->C);
-#endif
 }
 
 void cpu_init(Cpu *cpu, Memory *mem)
@@ -47,6 +45,8 @@ void cpu_reset(Cpu *cpu)
     uint8_t pc_fst = mem_read(cpu->mem, CPU_RESET_VECTOR_1);
     uint8_t pc_snd = mem_read(cpu->mem, CPU_RESET_VECTOR_2);
     cpu->PC = (pc_fst << 8) | pc_snd;
+    cpu->PC = 0x0400;
+    printf("PC resetted to 0x%hx\n", cpu->PC);
 }
 
 void cpu_execute(Cpu *cpu)
@@ -83,14 +83,14 @@ void cpu_set_zn(Cpu *cpu, uint8_t value)
 
 uint8_t cpu_get_status(Cpu *cpu)
 {
-    return cpu->N << 7 |
-           cpu->V << 6 |
-                1 << 5 |
-                1 << 4 |
-           cpu->D << 3 |
-           cpu->I << 2 |
-           cpu->Z << 1 |
-           cpu->C << 0;
+    return (cpu->N & 1) << 7 |
+           (cpu->V & 1) << 6 |
+                     1  << 5 |
+                     1  << 4 |
+           (cpu->D & 1) << 3 |
+           (cpu->I & 1) << 2 |
+           (cpu->Z & 1) << 1 |
+           (cpu->C & 1) << 0;
 }
 
 void cpu_push(Cpu *cpu, uint8_t value)
@@ -120,13 +120,13 @@ uint16_t cpu_pull16(Cpu *cpu)
 
 void cpu_set_status(Cpu *cpu, uint8_t status)
 {
-    cpu->N = status & (1 << 7);
-    cpu->V = status & (1 << 6);
-    cpu->U = status & (1 << 5);
-    cpu->B = status & (1 << 4);
-    cpu->D = status & (1 << 3);
-    cpu->I = status & (1 << 2);
-    cpu->Z = status & (1 << 1);
-    cpu->C = status & (1 << 0);
+    cpu->N = 1 & (status >> 7);
+    cpu->V = 1 & (status >> 6);
+    cpu->U = 1;
+    cpu->B = 1;
+    cpu->D = 1 & (status >> 3);
+    cpu->I = 1 & (status >> 2);
+    cpu->Z = 1 & (status >> 1);
+    cpu->C = 1 & (status >> 0);
 }
 

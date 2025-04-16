@@ -17,6 +17,7 @@ typedef enum Subcommand
 {
     SUBCOMMAND_HELP,
     SUBCOMMAND_RUN,
+    SUBCOMMAND_TEST,
 } Subcommand;
 
 typedef struct Args
@@ -24,6 +25,7 @@ typedef struct Args
     const char *executable;
     Subcommand subcommand;
     const char *run_program;
+    const char *test_rom;
 } Args;
 
 const float clock_frequency = 1.5e4f;
@@ -31,8 +33,9 @@ const float clock_frequency = 1.5e4f;
 const char *usage =
     "Usage: %s <subcommand> [options]\n"
     "Subcommands:\n"
-    "   help:        print this message\n"
-    "   run <path>:  run binary program\n";
+    "   help         print this message\n"
+    "   run <path>   run binary program\n"
+    "   test <path>  test cpu with rom\n";
 
 bool parse_args(int argc, const char **argv, Args *args)
 {
@@ -56,6 +59,16 @@ bool parse_args(int argc, const char **argv, Args *args)
 
         args->subcommand = SUBCOMMAND_RUN;
         args->run_program = SHIFT(argv, argc);
+        return true;
+    }
+
+    if (strcmp(subcommand, "test") == 0)
+    {
+        if (argc == 0)
+            return false;
+
+        args->subcommand = SUBCOMMAND_TEST;
+        args->test_rom = SHIFT(argv, argc);
         return true;
     }
 
@@ -114,16 +127,8 @@ cleanup:
     return buf;
 }
 
-void run_program(const char *path)
+void run_gui(Cpu *cpu, Memory *mem)
 {
-    uintptr_t len;
-    const unsigned char *program = read_entire_file_binary(path, &len);
-    if (program == NULL)
-    {
-        fprintf(stderr, "Error reading file: %s", strerror(errno));
-        exit(1);
-    }
-
     Color colors[] = {
         GetColor(0x000000FF),
         GetColor(0xffffffFF),
@@ -143,21 +148,6 @@ void run_program(const char *path)
         GetColor(0xbbbbbbFF),
     };
 
-    Cpu cpu = {0};
-    Memory mem = {0};
-
-    mem_init(&mem);
-    for (size_t i = 0; i < len; i++)
-    {
-        mem_write_force(&mem, 0x0600 + i, program[i]);
-    }
-
-    cpu_init(&cpu, &mem);
-
-    cpu_reset(&cpu);
-    cpu.B = 1;
-
-    Device main_dev = mem.devices[0];
     size_t width = 32;
     size_t height = 32;
 
@@ -186,7 +176,7 @@ void run_program(const char *path)
             debug_continue = !debug_continue;
         }
 
-        do_execute = IsKeyPressed(KEY_F7) || IsKeyPressedRepeat(KEY_F7) || debug_continue;
+        do_execute = (IsKeyPressed(KEY_F7) || IsKeyPressedRepeat(KEY_F7) || debug_continue) && cpu->B;
 
         if (IsKeyPressed(KEY_F10))
         {
@@ -195,34 +185,34 @@ void run_program(const char *path)
                 printf("0x%04zx:", i);
                 for (uintptr_t j = 0; j < 16; j++)
                 {
-                    printf(" %02hhx", mem_read(&mem, i + j));
+                    printf(" %02hhx", mem_read(mem, i + j));
                 }
                 printf("\n");
             }
             printf("\n");
         }
 
-        mem_write(&mem, 0x00fe, rand() % 256);
+        mem_write(mem, 0x00fe, rand() % 256);
 
         if (IsKeyPressed(KEY_W))
         {
-            mem_write(&mem, 0x00ff, 'w');
+            mem_write(mem, 0x00ff, 'w');
         }
         if (IsKeyPressed(KEY_S))
         {
-            mem_write(&mem, 0x00ff, 's');
+            mem_write(mem, 0x00ff, 's');
         }
         if (IsKeyPressed(KEY_A))
         {
-            mem_write(&mem, 0x00ff, 'a');
+            mem_write(mem, 0x00ff, 'a');
         }
         if (IsKeyPressed(KEY_D))
         {
-            mem_write(&mem, 0x00ff, 'd');
+            mem_write(mem, 0x00ff, 'd');
         }
 
         uintptr_t clocks = 0;
-        if (cpu.B && do_execute)
+        if (do_execute)
         {
             if (!debug_continue)
             {
@@ -236,20 +226,12 @@ void run_program(const char *path)
         }
 
         uintptr_t current_clocks = 0;
-        while (current_clocks < clocks)
+        while (current_clocks < clocks && cpu->B)
         {
-            cpu_execute(&cpu);
-            Instruction inst = get_instruction_by_opcode(mem_read(cpu.mem, cpu.PC));
+            cpu_execute(cpu);
+            Instruction inst = get_instruction_by_opcode(mem_read(cpu->mem, cpu->PC));
             current_clocks += inst.cycles;
         }
-
-#if 0
-        printf("0x%02x 0x%02x 0x%02x 0x%02x\n",
-               mem_read(cpu.mem, 0x0000),
-               mem_read(cpu.mem, 0x0001),
-               mem_read(cpu.mem, 0x00fe),
-               mem_read(cpu.mem, 0x00ff));
-#endif
 
         BeginDrawing();
         for (size_t row = 0; row < height; row++)
@@ -257,7 +239,7 @@ void run_program(const char *path)
             for (size_t col = 0; col < width; col++)
             {
                 size_t index = height * (width - col - 1) + row;
-                uint8_t color_value = mem_read(&mem, 0x0200 + index) % 16;
+                uint8_t color_value = mem_read(mem, 0x0200 + index) % 16;
                 Color color = colors[color_value];
                 BeginTextureMode(screen);
                 DrawPixel(row, col, color);
@@ -287,7 +269,7 @@ void run_program(const char *path)
             DrawRectangleRec(cpu_bounds, GetColor(0xFFFFFF22));
             DrawRectangleLinesEx(cpu_bounds, 1.0f, overlay_color);
 
-            Instruction inst = get_instruction_by_opcode(mem_read(cpu.mem, cpu.PC));
+            Instruction inst = get_instruction_by_opcode(mem_read(cpu->mem, cpu->PC));
             char buf[1024];
             snprintf(
                 buf,
@@ -298,9 +280,9 @@ void run_program(const char *path)
                 "NV-BDIZC\n"
                 "%d%d%d%d%d%d%d%d\n\n",
                 cpu_inst_name(inst.type),
-                cpu.PC, cpu.SP,
-                cpu.A, cpu.X, cpu.Y,
-                cpu.N, cpu.V, cpu.U, cpu.B, cpu.D, cpu.I, cpu.Z, cpu.C);
+                cpu->PC, cpu->SP,
+                cpu->A, cpu->X, cpu->Y,
+                cpu->N, cpu->V, cpu->U, cpu->B, cpu->D, cpu->I, cpu->Z, cpu->C);
 
             Vector2 pos = {cpu_bounds.x + 10, cpu_bounds.y + 10};
             DrawTextEx(font, buf, pos, font_size, 0, overlay_color);
@@ -322,6 +304,65 @@ void run_program(const char *path)
     CloseWindow();
 }
 
+void run_program(const char *path)
+{
+    uintptr_t len;
+    const unsigned char *program = read_entire_file_binary(path, &len);
+    if (program == NULL)
+    {
+        fprintf(stderr, "Error reading file: %s", strerror(errno));
+        exit(1);
+    }
+
+    Cpu cpu = {0};
+    Memory mem = {0};
+
+    mem_init(&mem);
+    for (size_t i = 0; i < len; i++)
+    {
+        mem_write_force(&mem, 0x0600 + i, program[i]);
+    }
+
+    cpu_init(&cpu, &mem);
+    cpu_reset(&cpu);
+    cpu.B = 1;
+
+    run_gui(&cpu, &mem);
+}
+
+void run_test(const char *path)
+{
+    uintptr_t len;
+    unsigned char *test = read_entire_file_binary(path, &len);
+    if (test == NULL)
+    {
+        fprintf(stderr, "Error reading file: %s", strerror(errno));
+        exit(1);
+    }
+
+    if (len != 65536)
+    {
+        fprintf(stderr, "Test ROM size expected to be 65536, but was %zu\n", len);
+        exit(1);
+    }
+
+    Cpu cpu = {0};
+    Memory mem = {0};
+    mem_append(&mem,
+             (Device){
+                 .begin_address = 0,
+                 .end_address = 65535,
+                 .data = test,
+                 .readonly = false,
+             });
+
+    cpu_init(&cpu, &mem);
+    cpu_reset(&cpu);
+    cpu.B = 1;
+
+    run_gui(&cpu, &mem);
+}
+
 int main(int argc, const char **argv)
 {
     Args args;
@@ -338,6 +379,9 @@ int main(int argc, const char **argv)
         break;
     case SUBCOMMAND_RUN:
         run_program(args.run_program);
+        break;
+    case SUBCOMMAND_TEST:
+        run_test(args.test_rom);
         break;
     }
 
