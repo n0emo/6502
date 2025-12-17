@@ -314,14 +314,15 @@ void run_program(const char *path)
         exit(1);
     }
 
+    if (len != 32 * 1024)
+    {
+        fprintf(stderr, "Incorrect ROM size: expected 32768, actual %zu:", len);
+    }
+
     Cpu cpu = {0};
     Memory mem = {0};
 
-    mem_init(&mem);
-    for (size_t i = 0; i < len; i++)
-    {
-        mem_write_force(&mem, 0x0600 + i, program[i]);
-    }
+    mem_init(&mem, program);
 
     cpu_init(&cpu, &mem);
     cpu_reset(&cpu);

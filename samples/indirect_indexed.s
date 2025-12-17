@@ -1,8 +1,15 @@
-LDY #$01
-LDA #$03
-STA $01
-LDA #$07
-STA $02
-LDX #$0a
-STX $0704
-LDA ($01),Y
+.segment "code"
+start:
+    ldy #$01
+    lda #$03
+    sta $01
+    lda #$07
+    sta $02
+    ldx #$0a
+    stx $0704
+    lda ($01),Y
+
+.segment "vectors"
+    .word 0
+    .word start
+    .word 0

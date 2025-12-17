@@ -1,10 +1,27 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1...3.31)
 
 project(mos6502)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(./lib/raylib)
+add_compile_definitions(_USE_MATH_DEFINES)
+
+include(FetchContent)
+set(FETCHCONTENT_QUIET NO)
+
+set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
+set(BUILD_GAMES OFF CACHE BOOL "Build raylib games" FORCE)
+set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "Enable raudio module" FORCE)
+set(CUSTOMIZE_BUILD ON CACHE BOOL "Custom build options" FORCE)
+set(RAYLIB_VERSION 5.5)
+
+FetchContent_Declare(
+    raylib
+    DOWNLOAD_EXTRACT_TIMESTAMP OFF
+    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
+)
+
+FetchContent_MakeAvailable(raylib)
 
 add_executable(mos6502
     ./src/addressing.c

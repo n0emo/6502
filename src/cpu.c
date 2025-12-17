@@ -44,8 +44,7 @@ void cpu_reset(Cpu *cpu)
 {
     uint8_t pc_fst = mem_read(cpu->mem, CPU_RESET_VECTOR_1);
     uint8_t pc_snd = mem_read(cpu->mem, CPU_RESET_VECTOR_2);
-    cpu->PC = (pc_fst << 8) | pc_snd;
-    cpu->PC = 0x0400;
+    cpu->PC = (pc_snd << 8) | pc_fst;
     printf("PC resetted to 0x%hx\n", cpu->PC);
 }
 
@@ -62,7 +61,6 @@ void cpu_execute(Cpu *cpu)
         cpu->PC += inst_size;
     }
     get_instruction_func(instruction.type)(cpu, addressing, data);
-    cpu_print(cpu);
 }
 
 void cpu_set_z(Cpu *cpu, uint8_t value)

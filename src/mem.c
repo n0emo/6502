@@ -9,7 +9,7 @@
 #define DEVICE_LIMIT 32
 #define len(x) sizeof(x) / sizeof(x[0])
 
-void mem_init(Memory *mem)
+void mem_init(Memory *mem, const uint8_t *rom)
 {
     mem_append(mem,
                (Device){
@@ -23,45 +23,13 @@ void mem_init(Memory *mem)
                (Device){
                    .data = calloc(0x8000, 1),
                    .begin_address = 0x8000,
-                   .end_address = 0xFFFA,
-                   .readonly = true,
-               });
-
-    mem_append(mem,
-               (Device){
-                   .data = calloc(6, 1),
-                   .begin_address = 0xFFFA,
                    .end_address = 0xFFFF,
                    .readonly = true,
                });
 
-    mem_write_force(mem, 0xFFFC, 0x80);
-    mem_write_force(mem, 0xFFFD, 0x00);
-    uint8_t init[] = {
-        // Init stack
-        0xa2, // LDX
-        0xff, // #$ff
-
-        0x9a, // TXS
-
-        // Init CPU
-        0xa9, // LDA
-        0x00, // #$00
-
-        0xa2, // LDX
-        0x00, // #$00
-
-        0xc9, // CMP
-        0xff, // #$ff
-
-        0x4c, // JMP
-        0x00, // $0600
-        0x06,
-    };
-
-    for (size_t i = 0; i < len(init); i++)
+    for (size_t i = 0; i < 1024 * 32; i++)
     {
-        mem_write_force(mem, 0x8000 + i, init[i]);
+        mem_write_force(mem, 0x8000 + i, rom[i]);
     }
 }
 
