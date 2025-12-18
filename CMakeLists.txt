@@ -9,19 +9,24 @@ add_compile_definitions(_USE_MATH_DEFINES)
 include(FetchContent)
 set(FETCHCONTENT_QUIET NO)
 
-set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
-set(BUILD_GAMES OFF CACHE BOOL "Build raylib games" FORCE)
-set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "Enable raudio module" FORCE)
-set(CUSTOMIZE_BUILD ON CACHE BOOL "Custom build options" FORCE)
-set(RAYLIB_VERSION 5.5)
+find_package(raylib)
 
-FetchContent_Declare(
-    raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-    URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
-)
+if(!raylib_FOUND)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
+    set(BUILD_GAMES OFF CACHE BOOL "Build raylib games" FORCE)
+    set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "Enable raudio module" FORCE)
+    set(CUSTOMIZE_BUILD ON CACHE BOOL "Custom build options" FORCE)
 
-FetchContent_MakeAvailable(raylib)
+    set(RAYLIB_VERSION 5.5)
+
+    FetchContent_Declare(
+        raylib
+        DOWNLOAD_EXTRACT_TIMESTAMP OFF
+        URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
+    )
+
+    FetchContent_MakeAvailable(raylib)
+endif()
 
 add_executable(mos6502
     ./src/addressing.c
