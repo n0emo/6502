@@ -1,3 +1,15 @@
 BasedOnStyle: Microsoft
-ColumnLimit: 0
-AlignArrayOfStructures: Left
+
+#AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveMacros: 'false'
+AlignEscapedNewlines: Left
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AlwaysBreakTemplateDeclarations: 'Yes'
+BinPackArguments: false
+BinPackParameters: false
+ColumnLimit: '120'
+Standard: Cpp11
+UseTab: Never

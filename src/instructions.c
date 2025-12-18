@@ -9,7 +9,7 @@ void cpu_adc(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t c = cpu->C;
     cpu->A = a + m + c;
     cpu_set_zn(cpu, cpu->A);
-    cpu->C = (int32_t) a + (int32_t) m + (int32_t) c > 0xFF;
+    cpu->C = (int32_t)a + (int32_t)m + (int32_t)c > 0xFF;
     // cpu->V = u8sign(a ^ m) && u8sign(a ^ cpu->A);
     cpu->V = ((a ^ cpu->A) & (m ^ cpu->A) & 0x80) != 0;
 }
@@ -271,10 +271,7 @@ void cpu_jam(Cpu *cpu, Addressing addressing, uint16_t operand)
     abort();
 }
 
-void cpu_jmp(Cpu *cpu, Addressing addressing, uint16_t operand)
-{
-    cpu->PC = addressing.address(cpu, operand);
-}
+void cpu_jmp(Cpu *cpu, Addressing addressing, uint16_t operand) { cpu->PC = addressing.address(cpu, operand); }
 
 void cpu_jsr(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
@@ -323,10 +320,7 @@ void cpu_lxa(Cpu *cpu, Addressing addressing, uint16_t operand)
     abort();
 }
 
-void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand)
-{
-    UNUSED3(cpu, addressing, operand);
-}
+void cpu_nop(Cpu *cpu, Addressing addressing, uint16_t operand) { UNUSED3(cpu, addressing, operand); }
 
 void cpu_ora(Cpu *cpu, Addressing addressing, uint16_t operand)
 {
@@ -421,8 +415,8 @@ void cpu_sbc(Cpu *cpu, Addressing addressing, uint16_t operand)
     uint8_t m = addressing.load(cpu, operand);
     uint8_t c = cpu->C;
     cpu->A = a - m - (1 - c);
-    cpu->C = (int32_t) a - (int32_t) m - (int32_t) (1 - c) >= 0;
-    //cpu->V = u8sign(a ^ m) && u8sign(a ^ cpu->A);
+    cpu->C = (int32_t)a - (int32_t)m - (int32_t)(1 - c) >= 0;
+    // cpu->V = u8sign(a ^ m) && u8sign(a ^ cpu->A);
     cpu->V = ((a ^ cpu->A) & (m ^ cpu->A) & 0x80) != 0;
     cpu_set_zn(cpu, cpu->A);
 }
@@ -494,20 +488,11 @@ void cpu_sre(Cpu *cpu, Addressing addressing, uint16_t operand)
     abort();
 }
 
-void cpu_sta(Cpu *cpu, Addressing addressing, uint16_t operand)
-{
-    addressing.store(cpu, operand, cpu->A);
-}
+void cpu_sta(Cpu *cpu, Addressing addressing, uint16_t operand) { addressing.store(cpu, operand, cpu->A); }
 
-void cpu_stx(Cpu *cpu, Addressing addressing, uint16_t operand)
-{
-    addressing.store(cpu, operand, cpu->X);
-}
+void cpu_stx(Cpu *cpu, Addressing addressing, uint16_t operand) { addressing.store(cpu, operand, cpu->X); }
 
-void cpu_sty(Cpu *cpu, Addressing addressing, uint16_t operand)
-{
-    addressing.store(cpu, operand, cpu->Y);
-}
+void cpu_sty(Cpu *cpu, Addressing addressing, uint16_t operand) { addressing.store(cpu, operand, cpu->Y); }
 
 // TODO: cpu_tas
 void cpu_tas(Cpu *cpu, Addressing addressing, uint16_t operand)

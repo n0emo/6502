@@ -1,6 +1,6 @@
 #include "cpu.h"
-#include "int.h"
 #include "instructions.h"
+#include "int.h"
 
 // TODO: fix transfer and decrement instructions
 
@@ -16,9 +16,20 @@ void cpu_print(Cpu *cpu)
         "NV-BDIZC\n"
         "%d%d%d%d%d%d%d%d\n\n",
         cpu_inst_name(inst.type),
-        cpu->PC, cpu->SP,
-        cpu->A, cpu->X, cpu->Y,
-        cpu->N, cpu->V, cpu->U, cpu->B, cpu->D, cpu->I, cpu->Z, cpu->C);
+        cpu->PC,
+        cpu->SP,
+        cpu->A,
+        cpu->X,
+        cpu->Y,
+        cpu->N,
+        cpu->V,
+        cpu->U,
+        cpu->B,
+        cpu->D,
+        cpu->I,
+        cpu->Z,
+        cpu->C
+    );
 }
 
 void cpu_init(Cpu *cpu, Memory *mem)
@@ -63,15 +74,9 @@ void cpu_execute(Cpu *cpu)
     get_instruction_func(instruction.type)(cpu, addressing, data);
 }
 
-void cpu_set_z(Cpu *cpu, uint8_t value)
-{
-    cpu->Z = value == 0;
-}
+void cpu_set_z(Cpu *cpu, uint8_t value) { cpu->Z = value == 0; }
 
-void cpu_set_n(Cpu *cpu, uint8_t value)
-{
-    cpu->N = u8sign(value);
-}
+void cpu_set_n(Cpu *cpu, uint8_t value) { cpu->N = u8sign(value); }
 
 void cpu_set_zn(Cpu *cpu, uint8_t value)
 {
@@ -81,14 +86,8 @@ void cpu_set_zn(Cpu *cpu, uint8_t value)
 
 uint8_t cpu_get_status(Cpu *cpu)
 {
-    return (cpu->N & 1) << 7 |
-           (cpu->V & 1) << 6 |
-                     1  << 5 |
-                     1  << 4 |
-           (cpu->D & 1) << 3 |
-           (cpu->I & 1) << 2 |
-           (cpu->Z & 1) << 1 |
-           (cpu->C & 1) << 0;
+    return (cpu->N & 1) << 7 | (cpu->V & 1) << 6 | 1 << 5 | 1 << 4 | (cpu->D & 1) << 3 | (cpu->I & 1) << 2 |
+           (cpu->Z & 1) << 1 | (cpu->C & 1) << 0;
 }
 
 void cpu_push(Cpu *cpu, uint8_t value)
@@ -127,4 +126,3 @@ void cpu_set_status(Cpu *cpu, uint8_t status)
     cpu->Z = 1 & (status >> 1);
     cpu->C = 1 & (status >> 0);
 }
-

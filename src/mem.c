@@ -11,21 +11,25 @@
 
 void mem_init(Memory *mem, const uint8_t *rom)
 {
-    mem_append(mem,
-               (Device){
-                   .data = calloc(0x8000, 1),
-                   .begin_address = 0,
-                   .end_address = 0x77FF,
-                   .readonly = false,
-               });
+    mem_append(
+        mem,
+        (Device){
+            .data = calloc(0x8000, 1),
+            .begin_address = 0,
+            .end_address = 0x77FF,
+            .readonly = false,
+        }
+    );
 
-    mem_append(mem,
-               (Device){
-                   .data = calloc(0x8000, 1),
-                   .begin_address = 0x8000,
-                   .end_address = 0xFFFF,
-                   .readonly = true,
-               });
+    mem_append(
+        mem,
+        (Device){
+            .data = calloc(0x8000, 1),
+            .begin_address = 0x8000,
+            .end_address = 0xFFFF,
+            .readonly = true,
+        }
+    );
 
     for (size_t i = 0; i < 1024 * 32; i++)
     {
@@ -63,7 +67,7 @@ uint8_t mem_read(Memory *mem, uint16_t address)
         }
     }
 
-    fprintf(stderr,  "No device mapped for address: %hu.\n", address);
+    fprintf(stderr, "No device mapped for address: %hu.\n", address);
     exit(1);
 }
 

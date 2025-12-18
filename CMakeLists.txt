@@ -28,14 +28,7 @@ if(!raylib_FOUND)
     FetchContent_MakeAvailable(raylib)
 endif()
 
-add_executable(mos6502
-    ./src/addressing.c
-    ./src/cpu.c
-    ./src/instructions.c
-    ./src/int.c
-    ./src/main.c
-    ./src/mem.c
-)
+add_executable(mos6502 ./src/main.c)
 
 target_include_directories(mos6502
     PRIVATE ./src
