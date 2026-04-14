@@ -2,6 +2,10 @@
 
 A MOS 6502 CPU emulator with a graphical debugger and display, built with Raylib.
 
+## Screenshot
+
+![Emulator window with snake program](./screenshots/snake.png)
+
 ## Features
 
 - Complete MOS 6502 instruction set (including illegal opcodes)
