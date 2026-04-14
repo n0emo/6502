@@ -52,3 +52,9 @@ Available recipes:
     run *args         # Run emulator with `args`
     run-sample name   # Build and run sample `samples/$name.rom` using emulator
 ```
+
+## Acknowledgements
+
+- **Easy 6502**: https://skilldrick.github.io/easy6502/
+- **6502/65C02 Functional Tests**: https://github.com/Klaus2m5/6502_65C02_functional_tests
+
