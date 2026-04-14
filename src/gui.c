@@ -98,12 +98,7 @@ static void app_handle_input(App *app)
 
     app->do_execute = (IsKeyPressed(KEY_F7) || IsKeyPressedRepeat(KEY_F7) || app->debug_continue) && app->cpu->B;
 
-    if (IsKeyPressed(KEY_F10))
-    {
-        cpu_print(app->cpu);
-    }
-
-    if (IsKeyPressed(KEY_F11))
+    if (IsKeyPressed(KEY_F9))
     {
         for (uintptr_t i = 0; i <= 0x00ff; i += 16)
         {
@@ -115,6 +110,11 @@ static void app_handle_input(App *app)
             printf("\n");
         }
         printf("\n");
+    }
+
+    if (IsKeyPressed(KEY_F10))
+    {
+        cpu_print(app->cpu);
     }
 
     int c = GetCharPressed();
@@ -219,8 +219,8 @@ static void app_draw_debug_info(App *app, Rectangle bounds)
         "ESC - close\n"
         "F6  - continue\n"
         "F7  - step\n"
-        "F10 - log CPU\n"
-        "F11 - log zero-page\n",
+        "F9  - log zero-page\n"
+        "F10 - log CPU\n",
         cpu_inst_name(inst.type),
         app->cpu->PC,
         app->cpu->SP,

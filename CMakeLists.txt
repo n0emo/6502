@@ -9,16 +9,11 @@ add_compile_definitions(_USE_MATH_DEFINES)
 include(FetchContent)
 set(FETCHCONTENT_QUIET NO)
 
-find_package(raylib)
+set(RAYLIB_VERSION 5.5)
 
-if(!raylib_FOUND)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "Build raylib examples" FORCE)
-    set(BUILD_GAMES OFF CACHE BOOL "Build raylib games" FORCE)
-    set(SUPPORT_MODULE_RAUDIO OFF CACHE BOOL "Enable raudio module" FORCE)
-    set(CUSTOMIZE_BUILD ON CACHE BOOL "Custom build options" FORCE)
+find_package(raylib ${RAYLIB_VERSION} QUIET)
 
-    set(RAYLIB_VERSION 5.5)
-
+if(NOT raylib_FOUND)
     FetchContent_Declare(
         raylib
         DOWNLOAD_EXTRACT_TIMESTAMP OFF

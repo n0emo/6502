@@ -41,10 +41,10 @@ init:
 
 
 initSnake:
-  lda #movingRight  ;start direction
+  lda #movingRight ; start direction
   sta snakeDirection
 
-  lda #4  ;start length (2 segments)
+  lda #4 ; start length (2 segments)
   sta snakeLength
 
   lda #$11
